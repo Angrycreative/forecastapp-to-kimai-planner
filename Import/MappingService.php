@@ -65,6 +65,7 @@ class MappingService implements ResetInterface
     public function personRows(ForecastData $data): array
     {
         $counts = $data->assignmentCounts();
+        $planned = $data->plannedTotals();
         $savedPeople = $this->repository->findByKind(Mapping::PERSON);
         $savedPlaceholders = $this->repository->findByKind(Mapping::PLACEHOLDER);
 
@@ -83,6 +84,7 @@ class MappingService implements ResetInterface
                 'email' => $email,
                 'archived' => (bool) ($person['archived'] ?? false),
                 'assignments' => $count,
+                'planned' => $planned['people'][$id] ?? null,
                 'target' => $target,
             ];
         }
@@ -96,6 +98,7 @@ class MappingService implements ResetInterface
                 'email' => null,
                 'archived' => (bool) ($placeholder['archived'] ?? false),
                 'assignments' => $count,
+                'planned' => $planned['placeholders'][$id] ?? null,
                 'target' => $saved?->toTarget() ?? Target::skip(),
             ];
         }
@@ -113,6 +116,7 @@ class MappingService implements ResetInterface
     public function projectRows(ForecastData $data, bool $withSuggestions = true): array
     {
         $counts = $data->assignmentCounts()['projects'];
+        $planned = $data->plannedTotals()['projects'];
         $saved = $this->repository->findByKind(Mapping::PROJECT);
 
         $rows = [];
@@ -131,6 +135,7 @@ class MappingService implements ResetInterface
                 'tags' => array_values(array_map('strval', (array) ($project['tags'] ?? []))),
                 'archived' => (bool) ($project['archived'] ?? false),
                 'assignments' => $count,
+                'planned' => $planned[$id] ?? null,
                 'target' => $target,
                 'suggestions' => $withSuggestions && $target === null ? $this->suggester()->suggest($client, $name) : [],
             ];

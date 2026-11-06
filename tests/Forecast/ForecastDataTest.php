@@ -48,6 +48,27 @@ final class ForecastDataTest extends TestCase
         ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable(), $collections);
     }
 
+    public function testTotalsWhatIsPlannedWithinTheRange(): void
+    {
+        $collections = self::collections();
+        // Friday 2026-11-06 to Tuesday 2026-11-10 at 2 hours: three working days, the weekend not counted
+        $collections['assignments'][0]['start_date'] = '2026-11-06';
+        $collections['assignments'][0]['end_date'] = '2026-11-10';
+        $collections['assignments'][0]['allocation'] = 7200;
+        // time off without hours on the Monday
+        $collections['assignments'][1]['allocation'] = null;
+        $data = ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable(), $collections);
+
+        $totals = $data->plannedTotals();
+
+        // trimmed to the range: Monday and Tuesday only
+        // plus the placeholder's hour on the Monday
+        self::assertSame(['hours' => 5.0, 'days' => 0, 'bookings' => 2, 'first' => '2026-11-09', 'last' => '2026-11-10'], $totals['projects'][10]);
+        self::assertSame(1, $totals['projects'][99]['days']);
+        self::assertSame(2, $totals['people'][1]['bookings']);
+        self::assertSame(1, $totals['placeholders'][5]['bookings']);
+    }
+
     public function testSurvivesStorage(): void
     {
         $data = ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable('2026-11-06T10:00:00+00:00'), self::collections());

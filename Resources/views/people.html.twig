@@ -12,11 +12,11 @@
             <table class="table table-vcenter card-table">
                 <thead>
                     <tr>
-                        <th>{{ 'forecast_import.forecast'|trans }}</th>
-                        <th class="text-end">{{ 'forecast_import.assignments'|trans }}</th>
+                        <th>{{ 'forecast_import.col_person'|trans }}</th>
+                        <th>{{ 'forecast_import.col_planned'|trans }}</th>
+                        <th>{{ 'forecast_import.col_goes_to'|trans }}</th>
                         <th>{{ 'forecast_import.status'|trans }}</th>
-                        <th>{{ 'forecast_import.kimai'|trans }}</th>
-                        <th class="w-1"></th>
+                        <th class="w-1"><span class="visually-hidden">{{ 'forecast_import.change'|trans }}</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -28,9 +28,9 @@
                                 {% if row.archived %}<span class="badge bg-secondary-lt ms-1">{{ 'forecast_import.archived'|trans }}</span>{% endif %}
                                 {% if row.email %}<div class="text-secondary small">{{ row.email }}</div>{% endif %}
                             </td>
-                            <td class="text-end" style="font-variant-numeric: tabular-nums">{{ row.assignments }}</td>
-                            <td>{{ include('@ForecastImport/_status.html.twig', {'target': row.target, 'default_skip': row.kind == 'placeholder' and row.target is not null and row.target.kind == 'skip'}) }}</td>
+                            <td>{{ include('@ForecastImport/_planned.html.twig', {'planned': row.planned}) }}</td>
                             <td>{{ include('@ForecastImport/_target.html.twig', {'target': row.target}) }}</td>
+                            <td>{{ include('@ForecastImport/_status.html.twig', {'target': row.target, 'default_skip': row.kind == 'placeholder' and row.target is not null and row.target.kind == 'skip'}) }}</td>
                             <td>
                                 <a href="{{ path('forecast_import_edit_person', {'kind': row.kind, 'id': row.id}) }}" class="btn btn-sm modal-ajax-form">{{ 'forecast_import.change'|trans }}</a>
                             </td>

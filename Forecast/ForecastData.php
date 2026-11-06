@@ -186,6 +186,54 @@ final class ForecastData
     }
 
     /**
+     * What is planned in Forecast per project and per person or placeholder within this range, for people to judge a
+     * row by: hours (Forecast books working days only, so weekdays count unless an assignment is active on days off),
+     * whole days for bookings without hours, the number of bookings and the first and last day.
+     *
+     * @return array{projects: array<int, array{hours: float, days: int, bookings: int, first: string, last: string}>, people: array<int, array{hours: float, days: int, bookings: int, first: string, last: string}>, placeholders: array<int, array{hours: float, days: int, bookings: int, first: string, last: string}>}
+     */
+    public function plannedTotals(): array
+    {
+        $totals = ['projects' => [], 'people' => [], 'placeholders' => []];
+        $rangeBegin = $this->begin->format('Y-m-d');
+        $rangeEnd = $this->end->format('Y-m-d');
+        foreach ($this->assignments as $assignment) {
+            $first = max((string) $assignment['start_date'], $rangeBegin);
+            $last = min((string) $assignment['end_date'], $rangeEnd);
+            if ($last < $first) {
+                continue;
+            }
+            $days = 0;
+            $allDays = (bool) ($assignment['active_on_days_off'] ?? false);
+            for ($day = new \DateTimeImmutable($first); $day->format('Y-m-d') <= $last; $day = $day->modify('+1 day')) {
+                if ($allDays || (int) $day->format('N') <= 5) {
+                    ++$days;
+                }
+            }
+            $hours = $assignment['allocation'] !== null ? $days * ((int) $assignment['allocation']) / 3600 : 0.0;
+            $wholeDays = $assignment['allocation'] === null ? $days : 0;
+
+            $keys = [['projects', (int) $assignment['project_id']]];
+            if ($assignment['person_id'] !== null) {
+                $keys[] = ['people', (int) $assignment['person_id']];
+            } elseif ($assignment['placeholder_id'] !== null) {
+                $keys[] = ['placeholders', (int) $assignment['placeholder_id']];
+            }
+            foreach ($keys as [$kind, $id]) {
+                $row = $totals[$kind][$id] ?? ['hours' => 0.0, 'days' => 0, 'bookings' => 0, 'first' => $first, 'last' => $last];
+                $row['hours'] += $hours;
+                $row['days'] += $wholeDays;
+                ++$row['bookings'];
+                $row['first'] = min($row['first'], $first);
+                $row['last'] = max($row['last'], $last);
+                $totals[$kind][$id] = $row;
+            }
+        }
+
+        return $totals;
+    }
+
+    /**
      * Tags of the projects that have assignments in this range, for choosing which tags mean "tentative".
      *
      * @return list<string>

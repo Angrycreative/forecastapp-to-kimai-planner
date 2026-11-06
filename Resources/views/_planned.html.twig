@@ -1,0 +1,11 @@
+{# What a person or project has planned in Forecast within the import dates. #}
+{% if planned %}
+    <div style="font-variant-numeric: tabular-nums">
+        {% if planned.hours > 0 %}{{ 'forecast_import.planned_hours'|trans({'%hours%': planned.hours|round}) }}{% endif %}
+        {% if planned.hours > 0 and planned.days > 0 %} · {% endif %}
+        {% if planned.days > 0 %}{{ 'forecast_import.planned_days'|trans({'%count%': planned.days}) }}{% endif %}
+    </div>
+    <div class="text-secondary small text-nowrap">
+        {{ 'forecast_import.bookings'|trans({'%count%': planned.bookings}) }} · {{ planned.first|date_short }}{% if planned.last != planned.first %} – {{ planned.last|date_short }}{% endif %}
+    </div>
+{% endif %}
