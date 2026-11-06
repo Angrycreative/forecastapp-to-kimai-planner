@@ -588,19 +588,19 @@
             </trans-unit>
             <trans-unit id="forecast_import.status_imported">
                 <source>forecast_import.status_imported</source>
-                <target>Imported</target>
+                <target>Mapped for import</target>
             </trans-unit>
             <trans-unit id="forecast_import.status_time_off">
                 <source>forecast_import.status_time_off</source>
-                <target>Imported as time off</target>
+                <target>Mapped as time off</target>
             </trans-unit>
             <trans-unit id="forecast_import.status_skipped">
                 <source>forecast_import.status_skipped</source>
-                <target>Not imported</target>
+                <target>Excluded from import</target>
             </trans-unit>
             <trans-unit id="forecast_import.status_skipped_help">
                 <source>forecast_import.status_skipped_help</source>
-                <target>You chose not to import this. Change it to import it after all.</target>
+                <target>You chose not to import this. Change it to include it after all.</target>
             </trans-unit>
             <trans-unit id="forecast_import.status_skipped_default_help">
                 <source>forecast_import.status_skipped_default_help</source>
@@ -608,11 +608,11 @@
             </trans-unit>
             <trans-unit id="forecast_import.status_left_out">
                 <source>forecast_import.status_left_out</source>
-                <target>Left out until mapped</target>
+                <target>Not mapped yet</target>
             </trans-unit>
             <trans-unit id="forecast_import.status_left_out_help">
                 <source>forecast_import.status_left_out_help</source>
-                <target>Nothing is imported for this until you decide where it goes in Kimai.</target>
+                <target>Nothing is imported for this until you decide where it goes in Kimai. Whatever an earlier import created for it stays.</target>
             </trans-unit>
             <trans-unit id="forecast_import.guide.skip_title">
                 <source>forecast_import.guide.skip_title</source>
