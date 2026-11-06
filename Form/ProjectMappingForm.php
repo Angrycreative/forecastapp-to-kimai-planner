@@ -61,6 +61,8 @@ final class ProjectMappingForm extends AbstractType
             'data_class' => MappingData::class,
             'csrf_protection' => true,
             'csrf_token_id' => 'forecast_import_mapping',
+            // Kimai's modal fires this when the dialog was saved; the list refreshes the changed row on it
+            'attr' => ['data-form-event' => 'forecast_import.mapping'],
         ]);
     }
 }

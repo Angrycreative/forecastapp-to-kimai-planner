@@ -109,11 +109,12 @@ class MappingService implements ResetInterface
     }
 
     /**
-     * Projects with assignments in the snapshot, unmapped ones first, then by number of assignments.
+     * Projects with assignments in the snapshot, unmapped ones first, then by number of assignments; with $only, just
+     * that one, so a single row can be refreshed without scoring every other project.
      *
      * @return list<array{id: int, client: ?string, name: string, tags: list<string>, archived: bool, assignments: int, target: ?Target, suggestions: list<array{candidate: ProjectCandidate, score: float}>}>
      */
-    public function projectRows(ForecastData $data, bool $withSuggestions = true): array
+    public function projectRows(ForecastData $data, bool $withSuggestions = true, ?int $only = null): array
     {
         $counts = $data->assignmentCounts()['projects'];
         $planned = $data->plannedTotals()['projects'];
@@ -121,6 +122,9 @@ class MappingService implements ResetInterface
 
         $rows = [];
         foreach ($counts as $id => $count) {
+            if ($only !== null && $id !== $only) {
+                continue;
+            }
             $project = $data->project($id);
             $client = $project === null || $project['client_id'] === null ? null : $data->clientName((int) $project['client_id']);
             $name = (string) ($project['name'] ?? '#' . $id);

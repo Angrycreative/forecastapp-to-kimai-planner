@@ -1,0 +1,20 @@
+{# The step bar, also served on its own to refresh it after a change. #}
+{% set active = steps|filter(s => s.active)|first %}
+<nav class="card mb-3" id="forecast-import-steps" data-refresh="{{ path('forecast_import_steps', {'active': active ? active.key : 'read'}) }}" aria-label="{{ 'forecast_import.steps'|trans }}">
+    <div class="card-body py-3">
+        <div class="steps steps-counter steps-blue my-0">
+            {% for step in steps %}
+                {% if step.enabled and not step.active %}
+                    <a href="{{ path(step.route) }}" class="step-item">
+                {% else %}
+                    <span class="step-item{{ step.active ? ' active' }}" {% if step.active %}aria-current="step"{% endif %}>
+                {% endif %}
+                    <span class="d-block">{{ step.title }}</span>
+                    {% if step.status %}
+                        <span class="d-block small {{ step.done ? 'text-green' : 'text-secondary' }}">{{ step.status }}</span>
+                    {% endif %}
+                {% if step.enabled and not step.active %}</a>{% else %}</span>{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</nav>
