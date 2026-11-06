@@ -27,6 +27,7 @@ final class PersonMappingForm extends AbstractType
     {
         $builder->add('action', ChoiceType::class, [
             'label' => 'forecast_import.action',
+            'help' => 'forecast_import.action_help_person',
             'expanded' => true,
             'choices' => [
                 'forecast_import.action_user' => Target::USER,

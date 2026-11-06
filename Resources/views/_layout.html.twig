@@ -11,6 +11,8 @@
         </div>
     </div>
 
+    {{ include('@ForecastImport/_guide.html.twig', {'open': (data ?? null) is null}) }}
+
     {% if steps is defined %}
         <nav class="card mb-3" aria-label="{{ 'forecast_import.steps'|trans }}">
             <div class="card-body py-3">

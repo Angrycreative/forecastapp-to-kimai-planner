@@ -148,7 +148,7 @@
             </trans-unit>
             <trans-unit id="forecast_import.unmapped">
                 <source>forecast_import.unmapped</source>
-                <target>Not mapped</target>
+                <target>Not mapped yet</target>
             </trans-unit>
             <trans-unit id="forecast_import.time_off">
                 <source>forecast_import.time_off</source>
@@ -581,6 +581,54 @@
             <trans-unit id="forecast_import.problem.no_work_contract">
                 <source>forecast_import.problem.no_work_contract</source>
                 <target>No working days in the Kimai work contract, so Forecast's working days were used</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status">
+                <source>forecast_import.status</source>
+                <target>Status</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_imported">
+                <source>forecast_import.status_imported</source>
+                <target>Imported</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_time_off">
+                <source>forecast_import.status_time_off</source>
+                <target>Imported as time off</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_skipped">
+                <source>forecast_import.status_skipped</source>
+                <target>Not imported</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_skipped_help">
+                <source>forecast_import.status_skipped_help</source>
+                <target>You chose not to import this. Change it to import it after all.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_skipped_default_help">
+                <source>forecast_import.status_skipped_default_help</source>
+                <target>Placeholders are not imported unless you give them to a user.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_left_out">
+                <source>forecast_import.status_left_out</source>
+                <target>Left out until mapped</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status_left_out_help">
+                <source>forecast_import.status_left_out_help</source>
+                <target>Nothing is imported for this until you decide where it goes in Kimai.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.skip_title">
+                <source>forecast_import.guide.skip_title</source>
+                <target>Choosing not to import</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.skip">
+                <source>forecast_import.guide.skip</source>
+                <target>Choose "Do not import" for a person or a project and none of its Forecast planning is imported. If an earlier import already created plannings for it, the next import removes them, within the import dates. Plannings made in Kimai are never touched, and you can change your mind at any time: the next import brings the planning in again. Something not mapped yet is different: it is simply left out, and whatever an earlier import created for it stays.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_help_person">
+                <source>forecast_import.action_help_person</source>
+                <target>Not importing a person leaves out all of their Forecast planning, and the next import removes what an earlier one created for them.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_help_project">
+                <source>forecast_import.action_help_project</source>
+                <target>Not importing a project leaves out all of its Forecast planning, and the next import removes what an earlier one created for it.</target>
             </trans-unit>
         </body>
     </file>

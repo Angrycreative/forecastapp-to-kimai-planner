@@ -33,6 +33,7 @@ final class ProjectMappingForm extends AbstractType
 
         $builder->add('action', ChoiceType::class, [
             'label' => 'forecast_import.action',
+            'help' => 'forecast_import.action_help_project',
             'expanded' => true,
             'choices' => [
                 'forecast_import.action_work' => Target::WORK,
