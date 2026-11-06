@@ -7,8 +7,6 @@
         <div class="alert alert-danger">{{ 'forecast_import.planner_missing'|trans }}</div>
     {% endif %}
 
-    {{ include('@ForecastImport/_guide.html.twig', {'open': data is null}) }}
-
     <div class="row row-cards">
         <div class="col-lg-7">
             <div class="card">

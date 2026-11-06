@@ -1,0 +1,10 @@
+{# Whether a row's planning will be imported, so a decision is visible in the list without opening it. #}
+{% if target is null %}
+    <span class="badge bg-yellow-lt" title="{{ 'forecast_import.status_left_out_help'|trans }}">{{ 'forecast_import.status_left_out'|trans }}</span>
+{% elseif target.kind == 'skip' %}
+    <span class="badge bg-secondary-lt" title="{{ (default_skip ?? false ? 'forecast_import.status_skipped_default_help' : 'forecast_import.status_skipped_help')|trans }}">{{ 'forecast_import.status_skipped'|trans }}</span>
+{% elseif target.kind == 'time_off' %}
+    <span class="badge bg-azure-lt">{{ 'forecast_import.status_time_off'|trans }}</span>
+{% else %}
+    <span class="badge bg-green-lt">{{ 'forecast_import.status_imported'|trans }}</span>
+{% endif %}

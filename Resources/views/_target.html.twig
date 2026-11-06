@@ -1,6 +1,6 @@
 {# How a mapping target reads in the tables. #}
 {% if target is null %}
-    <span class="badge bg-yellow-lt">{{ 'forecast_import.unmapped'|trans }}</span>
+    <span class="text-secondary">{{ 'forecast_import.unmapped'|trans }}</span>
 {% elseif target.kind == 'user' %}
     {{ target.user.displayName }}
     {% if not target.user.enabled %}<span class="badge bg-red-lt ms-1">{{ 'forecast_import.disabled'|trans }}</span>{% endif %}
@@ -9,7 +9,7 @@
 {% elseif target.kind == 'time_off' %}
     <span class="badge bg-azure-lt">{{ 'forecast_import.time_off'|trans }}</span>
 {% else %}
-    <span class="badge bg-secondary-lt">{{ 'forecast_import.skipped'|trans }}</span>
+    <span class="text-secondary">–</span>
 {% endif %}
 {% if target is not null and target.automatic %}
     <span class="badge bg-secondary-lt ms-1" title="{{ 'forecast_import.automatic_help'|trans }}">{{ 'forecast_import.automatic'|trans }}</span>

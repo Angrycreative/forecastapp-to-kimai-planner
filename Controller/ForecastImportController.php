@@ -251,6 +251,7 @@ final class ForecastImportController extends AbstractController
 
         return $this->render('@ForecastImport/tentative.html.twig', [
             'steps' => $this->steps($data, 'tentative'),
+            'data' => $data,
             'form' => $form->createView(),
             'supported' => $this->import->capabilities()->supportsTentative(),
         ]);

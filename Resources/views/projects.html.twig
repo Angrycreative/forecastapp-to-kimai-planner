@@ -26,6 +26,8 @@
                             <th class="w-1"></th>
                             <th>{{ 'forecast_import.forecast'|trans }}</th>
                             <th class="text-end">{{ 'forecast_import.assignments'|trans }}</th>
+                            <th>{{ 'forecast_import.status'|trans }}</th>
+                        <th>{{ 'forecast_import.status'|trans }}</th>
                             <th>{{ 'forecast_import.kimai'|trans }}</th>
                             <th class="w-1"></th>
                         </tr>
@@ -46,6 +48,7 @@
                                     {% for tag in row.tags %}<span class="badge bg-secondary-lt ms-1">{{ tag }}</span>{% endfor %}
                                 </td>
                                 <td class="text-end" style="font-variant-numeric: tabular-nums">{{ row.assignments }}</td>
+                            <td>{{ include('@ForecastImport/_status.html.twig', {'target': row.target}) }}</td>
                                 <td>
                                     {% if row.target is null and best %}
                                         <span class="text-secondary small">{{ 'forecast_import.suggestion'|trans }}</span>
