@@ -1,6 +1,6 @@
 {# How a mapping target reads in the tables. #}
 {% if target is null %}
-    <span class="text-secondary">{{ 'forecast_import.unmapped'|trans }}</span>
+    <span class="text-secondary">–</span>
 {% elseif target.kind == 'user' %}
     {{ target.user.displayName }}
     {% if not target.user.enabled %}<span class="badge bg-red-lt ms-1">{{ 'forecast_import.disabled'|trans }}</span>{% endif %}
