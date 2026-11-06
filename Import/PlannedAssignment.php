@@ -31,12 +31,13 @@ final class PlannedAssignment
     }
 
     /**
-     * Every planning of one assignment shares a recurrence group, so the planner treats them as one series ("all future
-     * instances") and so the halves the planner makes when someone splits an imported planning can still be found.
+     * The parts of an assignment cut around days off share a recurrence group, so the planner treats them as one
+     * series, as it does with plannings it cut around days off itself. A planning in one piece gets none: being part of
+     * a series makes the planner ask "only this one or all future ones" on every edit, for good.
      */
-    public function recurrenceGroup(): string
+    public function recurrenceGroup(): ?string
     {
-        return self::GROUP_PREFIX . $this->forecastId;
+        return \count($this->parts) > 1 ? self::GROUP_PREFIX . $this->forecastId : null;
     }
 
     public static function idFromGroup(string $group): ?int
