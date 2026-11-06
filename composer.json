@@ -1,0 +1,33 @@
+{
+  "name": "angrycreative/forecast-import-bundle",
+  "description": "Import people's planning, time off and tentative work from Harvest Forecast into the Kimai Weekly Planner (PlannerBundle), so a team can leave Forecast without re-entering its plan.",
+  "homepage": "https://github.com/Angrycreative/forecastapp-to-kimai-planner",
+  "type": "kimai-plugin",
+  "version": "0.1.0",
+  "require": {
+    "php": ">=8.2",
+    "kimai/kimai": ">=2.60.0"
+  },
+  "keywords": [
+    "kimai",
+    "kimai-plugin",
+    "planner",
+    "forecast",
+    "harvest",
+    "migration"
+  ],
+  "license": "AGPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Angry Creative",
+      "homepage": "https://angrycreative.se"
+    }
+  ],
+  "extra": {
+    "kimai": {
+      "require": 26000,
+      "name": "ForecastImport",
+      "version": "0.1.0"
+    }
+  }
+}
