@@ -48,10 +48,12 @@ class Importer
                 $inRange = $this->inRange($existing, $plan);
                 if ($inRange !== [] && $this->isUnchanged($inRange, $assignment->fingerprint)) {
                     ++$result->unchanged;
+                    $result->statuses[$id] = ImportResult::UNCHANGED;
 
                     continue;
                 }
                 $inRange === [] ? ++$result->created : ++$result->updated;
+                $result->statuses[$id] = $inRange === [] ? ImportResult::CREATED : ImportResult::UPDATED;
                 $this->clear($existing, $plan, $result, $dryRun);
                 $this->create($assignment, $result, $dryRun);
             }
@@ -61,9 +63,24 @@ class Importer
                     continue;
                 }
                 $before = $result->planningsRemoved + $result->planningsShortened;
+                foreach ($this->inRange($existing, $plan) as $link) {
+                    $activity = $link->getPlannedActivity();
+                    $result->removedPlannings[] = [
+                        'assignment' => $id,
+                        'user' => (string) $activity->getUser()?->getDisplayName(),
+                        'label' => $activity->getProject() !== null
+                            ? $activity->getCustomer()?->getName() . ' / ' . $activity->getProject()->getName()
+                            : (string) ($activity->getCustomer()?->getName() ?? ''),
+                        'begin' => $activity->getBegin(),
+                        'end' => $activity->getEnd(),
+                        'hoursPerDay' => $activity->getHoursPerDay(),
+                        'timeOff' => $this->capabilities->supportsTimeOff() && $activity->isTimeOff(),
+                    ];
+                }
                 $this->clear($existing, $plan, $result, $dryRun);
                 if ($result->planningsRemoved + $result->planningsShortened > $before) {
                     ++$result->removed;
+                    $result->statuses[$id] = ImportResult::REMOVED;
                 }
             }
 

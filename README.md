@@ -12,7 +12,7 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 - **Brings time off across as time off.** Forecast's "Time Off" project becomes planner time off, whole days included.
 - **Lets you say what "tentative" means.** Forecast has no tentative flag, so you choose project tags (such as "not signed") whose assignments are imported as tentative planning.
 - **Respects working days.** Forecast books working days only; a planning in Kimai covers every day between its dates. Assignments are cut into runs of each person's working days, from their Kimai work contract and, where the planner knows them, public holidays. The parts of one assignment form one series in the planner.
-- **Shows you everything before it writes anything.** The preview counts what would be created, changed and removed, and lists what would be left out and why.
+- **Shows you everything before it writes anything.** Reading Forecast only copies its plan in for review, and says what it found and what changed since the previous read. The preview then lists, per person, every assignment with its dates, hours and what the import will do with it (new, changed, to remove or already up to date), plus anything left out and why. Only "Import planning" on that last step writes to the planner.
 - **Is safe to run again.** Each planning remembers the Forecast assignment it came from. Running again leaves unchanged assignments alone (including edits made in Kimai since), replaces changed ones and removes those deleted or skipped in Forecast. Assignments that cannot be resolved keep whatever an earlier run created. Only the chosen date range is touched.
 - **Can start over.** One button removes every imported planning. Plannings made in Kimai, and your mapping decisions, stay.
 
@@ -33,11 +33,13 @@ Super admins get the `forecast_import` permission and find **Forecast import** u
 
 ## Using it
 
-1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created.
+A step bar on every page shows where you are and how far each step is, and a collapsible guide on the first step explains each one.
+
+1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created. Reading changes nothing in the planner.
 2. **People.** Check the automatic matches and decide about anyone unmatched. Placeholders are skipped by default because the planner plans people, but you can give one to a user.
 3. **Projects.** Accept the ticked suggestions, then go through the rest. Unmapped projects are listed first.
 4. **Tentative work.** Tick the tags that mean "not confirmed yet".
-5. **Preview and import.** Check the counts and anything worth checking, then import.
+5. **Preview and import.** Check what will happen per person and anything worth checking, then press "Import planning".
 
 Run it again whenever Forecast changes: read Forecast again, review anything new, preview, import.
 

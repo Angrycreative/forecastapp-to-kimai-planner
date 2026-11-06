@@ -24,6 +24,21 @@ final class ImportResult
     public int $planningsRemoved = 0;
     public int $planningsShortened = 0;
 
+    public const CREATED = 'created';
+    public const UPDATED = 'updated';
+    public const UNCHANGED = 'unchanged';
+    public const REMOVED = 'removed';
+
+    /** @var array<int, string> what happens to each Forecast assignment */
+    public array $statuses = [];
+
+    /**
+     * Earlier imported plannings that are removed or shortened, for assignments no longer in the plan.
+     *
+     * @var list<array{assignment: int, user: string, label: string, begin: \DateTimeInterface, end: \DateTimeInterface, hoursPerDay: ?float, timeOff: bool}>
+     */
+    public array $removedPlannings = [];
+
     public function __construct(public readonly bool $dryRun)
     {
     }

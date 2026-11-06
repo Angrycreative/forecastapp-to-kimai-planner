@@ -12,7 +12,7 @@ services:
             - '../../Forecast/ForecastApiException.php'
             - '../../Forecast/ForecastCredentials.php'
             - '../../Forecast/ForecastData.php'
-            - '../../Import/{ImportResult,MappingSet,Plan,PlannedAssignment,PlannedPart,ProjectCandidate,ProjectSuggester,Target}.php'
+            - '../../Import/{ImportResult,MappingSet,Plan,PlannedAssignment,PlannedPart,Preview,ProjectCandidate,ProjectSuggester,ReadSummary,Target}.php'
             - '../../Migrations/'
             - '../../Resources/'
             - '../../tests/'

@@ -68,12 +68,22 @@ final class ImportCommand extends Command
         try {
             if ($input->getOption('fetch')) {
                 $token = getenv('FORECAST_TOKEN') ?: (string) $io->askHidden('Harvest personal access token');
-                $data = $this->import->fetch(
+                $read = $this->import->fetch(
                     new ForecastCredentials((string) $input->getOption('account-id'), $token),
                     new \DateTimeImmutable((string) $input->getOption('begin') . ' midnight'),
                     new \DateTimeImmutable((string) $input->getOption('end') . ' midnight'),
                 );
-                $io->success(\sprintf('Read %d assignments between %s and %s.', \count($data->assignments), $data->begin->format('Y-m-d'), $data->end->format('Y-m-d')));
+                $io->success(\sprintf(
+                    'Read %d assignments (%d of them time off) for %d people on %d projects, %s to %s.%s',
+                    $read->assignments,
+                    $read->timeOff,
+                    $read->people,
+                    $read->projects,
+                    $read->begin,
+                    $read->end,
+                    $read->hasPrevious ? \sprintf(' Since the previous read%s: %d new, %d changed, %d gone.', $read->rangeChanged ? ' (dates differ, only the overlap compared)' : '', $read->new, $read->changed, $read->gone) : ''
+                ));
+                $data = $this->import->data() ?? throw new \LogicException('Forecast data was just stored.');
             } else {
                 $data = $this->import->data();
                 if ($data === null) {

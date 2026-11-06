@@ -1,0 +1,34 @@
+{# The collapsible guide on the first step: what each step does, how matching works and what running it again does. #}
+<div class="card mb-3">
+    <div class="card-header">
+        <h3 class="card-title">{{ 'forecast_import.guide.title'|trans }}</h3>
+        <div class="card-actions">
+            <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#forecast-import-guide" aria-expanded="{{ open ? 'true' : 'false' }}" aria-controls="forecast-import-guide">
+                {{ 'forecast_import.guide.toggle'|trans }}
+            </button>
+        </div>
+    </div>
+    <div class="collapse{{ open ? ' show' }}" id="forecast-import-guide">
+        <div class="card-body">
+            <p style="max-width: 75ch">{{ 'forecast_import.guide.intro'|trans }}</p>
+            <div class="row g-4">
+                {% for key in ['read', 'people', 'projects', 'tentative', 'preview'] %}
+                    <div class="col-md-6 col-xl-4">
+                        <h4 class="mb-1">{{ loop.index }}. {{ ('forecast_import.guide.' ~ key ~ '_title')|trans }}</h4>
+                        <p class="text-secondary mb-0">{{ ('forecast_import.guide.' ~ key)|trans }}</p>
+                    </div>
+                {% endfor %}
+                <div class="col-md-6 col-xl-4">
+                    <h4 class="mb-1">{{ 'forecast_import.guide.again_title'|trans }}</h4>
+                    <p class="text-secondary mb-0">{{ 'forecast_import.guide.again'|trans }}</p>
+                </div>
+            </div>
+            <h4 class="mt-4 mb-2">{{ 'forecast_import.guide.expect_title'|trans }}</h4>
+            <ul class="text-secondary mb-0" style="max-width: 85ch">
+                {% for key in ['days', 'hours', 'time_off', 'range', 'edits', 'not'] %}
+                    <li>{{ ('forecast_import.guide.expect_' ~ key)|trans }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>

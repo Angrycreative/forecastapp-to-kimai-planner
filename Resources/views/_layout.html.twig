@@ -4,13 +4,54 @@
     <div class="page-header d-print-none mb-3">
         <div class="row align-items-center">
             <div class="col">
-                <div class="page-pretitle">
-                    <a href="{{ path('forecast_import') }}">{{ 'forecast_import.title'|trans }}</a>
-                </div>
+                <div class="page-pretitle">{{ 'forecast_import.title'|trans }}</div>
                 <h2 class="page-title">{% block heading %}{% endblock %}</h2>
             </div>
             <div class="col-auto ms-auto d-flex gap-2">{% block heading_actions %}{% endblock %}</div>
         </div>
     </div>
+
+    {% if steps is defined %}
+        <nav class="card mb-3" aria-label="{{ 'forecast_import.steps'|trans }}">
+            <div class="card-body py-3">
+                <div class="steps steps-counter steps-blue my-0">
+                    {% for step in steps %}
+                        {% if step.enabled and not step.active %}
+                            <a href="{{ path(step.route) }}" class="step-item">
+                        {% else %}
+                            <span class="step-item{{ step.active ? ' active' }}" {% if step.active %}aria-current="step"{% endif %}>
+                        {% endif %}
+                            <span class="d-block">{{ step.title }}</span>
+                            {% if step.status %}
+                                <span class="d-block small {{ step.done ? 'text-green' : 'text-secondary' }}">{{ step.status }}</span>
+                            {% endif %}
+                        {% if step.enabled and not step.active %}</a>{% else %}</span>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </nav>
+    {% endif %}
+
     {% block content %}{% endblock %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Reading Forecast and importing can take a while: show that something is happening and prevent double clicks.
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form[data-forecast-busy]').forEach(function (form) {
+                form.addEventListener('submit', function () {
+                    form.querySelectorAll('button[type="submit"]').forEach(function (button) {
+                        button.classList.add('btn-loading');
+                        button.setAttribute('aria-busy', 'true');
+                        window.setTimeout(function () { button.disabled = true; }, 0);
+                    });
+                    form.querySelectorAll('[data-forecast-busy-note]').forEach(function (note) {
+                        note.hidden = false;
+                    });
+                });
+            });
+        });
+    </script>
 {% endblock %}

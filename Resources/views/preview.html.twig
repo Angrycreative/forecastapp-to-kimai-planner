@@ -3,39 +3,45 @@
 {% block heading %}{{ 'forecast_import.step_preview'|trans }}{% endblock %}
 
 {% block content %}
-    <p class="text-secondary" style="max-width: 70ch">
+    {% if imported %}
+        <div class="alert alert-success">
+            <h4 class="alert-title">{{ 'forecast_import.imported_title'|trans }}</h4>
+            <div>{{ 'forecast_import.imported_summary'|trans({
+                '%created%': imported.created,
+                '%updated%': imported.updated,
+                '%removed%': imported.removed,
+                '%unchanged%': imported.unchanged,
+                '%plannings%': imported.planningsCreated
+            }) }}</div>
+            {% if capabilities.plannerInstalled %}
+                <a href="{{ path('planner_week', {'date': imported.begin}) }}" class="btn btn-success btn-sm mt-2">{{ 'forecast_import.open_planner'|trans }}</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <p class="text-secondary" style="max-width: 75ch">
         {{ 'forecast_import.preview_intro'|trans({'%begin%': plan.begin|date_short, '%end%': plan.end|date_short}) }}
     </p>
 
     <div class="row row-cards mb-3">
-        {% for key, value in {
-            'forecast_import.result_created': result.created,
-            'forecast_import.result_updated': result.updated,
-            'forecast_import.result_unchanged': result.unchanged,
-            'forecast_import.result_removed': result.removed,
+        {% for key, item in {
+            'forecast_import.result_created': {'value': result.created, 'color': 'green'},
+            'forecast_import.result_updated': {'value': result.updated, 'color': 'yellow'},
+            'forecast_import.result_removed': {'value': result.removed, 'color': 'red'},
+            'forecast_import.result_unchanged': {'value': result.unchanged, 'color': 'secondary'},
         } %}
             <div class="col-6 col-lg-3">
                 <div class="card card-sm">
-                    <div class="card-body">
-                        <div class="text-secondary small">{{ key|trans }}</div>
-                        <div class="h2 m-0" style="font-variant-numeric: tabular-nums">{{ value }}</div>
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="badge bg-{{ item.color }} p-1" aria-hidden="true"></span>
+                        <div>
+                            <div class="text-secondary small">{{ key|trans }}</div>
+                            <div class="h2 m-0" style="font-variant-numeric: tabular-nums">{{ item.value }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         {% endfor %}
-    </div>
-
-    <div class="card mb-3">
-        <div class="card-body">
-            <p class="m-0">
-                {{ 'forecast_import.result_plannings'|trans({
-                    '%created%': result.planningsCreated,
-                    '%removed%': result.planningsRemoved,
-                    '%shortened%': result.planningsShortened,
-                    '%hours%': plan.totalHours|round
-                }) }}
-            </p>
-        </div>
     </div>
 
     {% if plan.problems is not empty %}
@@ -47,6 +53,8 @@
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="badge {{ problem in blocking ? 'bg-yellow-lt' : 'bg-secondary-lt' }}">{{ (problem in blocking ? 'forecast_import.left_out' : 'forecast_import.note')|trans }}</span>
                             <strong>{{ ('forecast_import.problem.' ~ problem)|trans }}</strong>
+                            {% if problem == 'project_unmapped' %}<a href="{{ path('forecast_import_projects') }}" class="ms-auto small">{{ 'forecast_import.fix_projects'|trans }}</a>{% endif %}
+                            {% if problem == 'person_unmapped' %}<a href="{{ path('forecast_import_people') }}" class="ms-auto small">{{ 'forecast_import.fix_people'|trans }}</a>{% endif %}
                         </div>
                         <div class="text-secondary small">
                             {% for subject, count in subjects %}{{ subject }} ({{ count }}){% if not loop.last %}, {% endif %}{% endfor %}
@@ -57,16 +65,75 @@
         </div>
     {% endif %}
 
-    <div class="card">
-        <form method="post" action="{{ path('forecast_import_run') }}">
-            <div class="card-body">
-                <p class="m-0">{{ 'forecast_import.run_help'|trans }}</p>
-            </div>
-            <div class="card-footer d-flex gap-2 justify-content-end">
+    <div class="card mb-3 border-primary">
+        <form method="post" action="{{ path('forecast_import_run') }}" data-forecast-busy="import">
+            <div class="card-body d-flex flex-wrap align-items-center gap-3">
+                <div class="flex-fill" style="min-width: 0; max-width: 75ch">
+                    <h3 class="card-title mb-1">{{ 'forecast_import.run_title'|trans }}</h3>
+                    {% if result.hasChanges %}
+                        <p class="m-0">{{ 'forecast_import.run_summary'|trans({
+                            '%created%': result.planningsCreated,
+                            '%people%': people|filter(p => p.counts.created + p.counts.updated + p.counts.removed > 0)|length,
+                            '%removed%': result.planningsRemoved + result.planningsShortened
+                        }) }}</p>
+                        <p class="text-secondary small m-0">{{ 'forecast_import.run_help'|trans }}</p>
+                    {% else %}
+                        <p class="text-secondary m-0">{{ 'forecast_import.run_nothing'|trans }}</p>
+                    {% endif %}
+                    <p class="text-secondary small m-0" data-forecast-busy-note hidden>{{ 'forecast_import.importing'|trans }}</p>
+                </div>
                 <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_run') }}">
-                <a href="{{ path('forecast_import_projects') }}" class="btn">{{ 'forecast_import.back_to_projects'|trans }}</a>
-                <button type="submit" class="btn btn-primary" {{ not capabilities.plannerInstalled or not result.hasChanges ? 'disabled' }}>{{ 'forecast_import.run'|trans }}</button>
+                <button type="submit" class="btn btn-primary btn-lg" {{ not capabilities.plannerInstalled or not result.hasChanges ? 'disabled' }}>{{ 'forecast_import.run'|trans }}</button>
             </div>
         </form>
+    </div>
+
+    <h3 class="mb-2">{{ 'forecast_import.per_person'|trans }}</h3>
+    <div class="card">
+        <div class="list-group list-group-flush">
+            {% for person in people %}
+                <details class="list-group-item p-0">
+                    <summary class="d-flex flex-wrap align-items-center gap-2 px-3 py-2" style="cursor: pointer">
+                        <strong class="me-auto">{{ person.name }}</strong>
+                        {% if person.counts.created %}<span class="badge bg-green-lt">{{ 'forecast_import.diff_new'|trans({'%count%': person.counts.created}) }}</span>{% endif %}
+                        {% if person.counts.updated %}<span class="badge bg-yellow-lt">{{ 'forecast_import.diff_changed'|trans({'%count%': person.counts.updated}) }}</span>{% endif %}
+                        {% if person.counts.removed %}<span class="badge bg-red-lt">{{ 'forecast_import.diff_removed'|trans({'%count%': person.counts.removed}) }}</span>{% endif %}
+                        {% if person.counts.unchanged %}<span class="badge bg-secondary-lt">{{ 'forecast_import.diff_unchanged'|trans({'%count%': person.counts.unchanged}) }}</span>{% endif %}
+                        <span class="text-secondary small" style="font-variant-numeric: tabular-nums">{{ 'forecast_import.hours_planned'|trans({'%hours%': person.hours|round(1)}) }}</span>
+                    </summary>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-vcenter mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="w-1"></th>
+                                    <th>{{ 'forecast_import.what'|trans }}</th>
+                                    <th>{{ 'forecast_import.when'|trans }}</th>
+                                    <th class="text-end">{{ 'forecast_import.hours_per_day'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in person.rows %}
+                                    <tr>
+                                        <td><span class="badge {{ {'created': 'bg-green-lt', 'updated': 'bg-yellow-lt', 'removed': 'bg-red-lt', 'unchanged': 'bg-secondary-lt'}[row.status] }}">{{ ('forecast_import.status.' ~ row.status)|trans }}</span></td>
+                                        <td>
+                                            {% if row.timeOff %}<span class="badge bg-azure-lt">{{ 'forecast_import.time_off'|trans }}</span>{% else %}{{ row.label }}{% endif %}
+                                            {% if row.tentative %}<span class="badge bg-purple-lt ms-1">{{ 'forecast_import.tentative'|trans }}</span>{% endif %}
+                                            {% if row.comment %}<div class="text-secondary small">{{ row.comment|u.truncate(120, '…') }}</div>{% endif %}
+                                        </td>
+                                        <td class="text-nowrap">
+                                            {{ row.begin|date_short }}{% if row.end|date('Y-m-d') != row.begin|date('Y-m-d') %} – {{ row.end|date_short }}{% endif %}
+                                            {% if row.parts > 1 %}<div class="text-secondary small">{{ 'forecast_import.parts'|trans({'%count%': row.parts}) }}</div>{% endif %}
+                                        </td>
+                                        <td class="text-end" style="font-variant-numeric: tabular-nums">{{ row.hoursPerDay is null ? 'forecast_import.whole_day'|trans : row.hoursPerDay|round(2) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            {% else %}
+                <div class="list-group-item text-secondary">{{ 'forecast_import.nothing_planned'|trans }}</div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

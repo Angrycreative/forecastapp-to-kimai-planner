@@ -252,23 +252,23 @@
             </trans-unit>
             <trans-unit id="forecast_import.preview_intro">
                 <source>forecast_import.preview_intro</source>
-                <target>What importing %begin% to %end% would do right now. Nothing has been written yet.</target>
+                <target>This is what importing %begin% to %end% would do right now. Nothing has been written yet: check it, then import.</target>
             </trans-unit>
             <trans-unit id="forecast_import.result_created">
                 <source>forecast_import.result_created</source>
-                <target>New</target>
+                <target>New in the planner</target>
             </trans-unit>
             <trans-unit id="forecast_import.result_updated">
                 <source>forecast_import.result_updated</source>
-                <target>Changed since last import</target>
+                <target>Changed in Forecast</target>
             </trans-unit>
             <trans-unit id="forecast_import.result_unchanged">
                 <source>forecast_import.result_unchanged</source>
-                <target>Unchanged</target>
+                <target>Already up to date</target>
             </trans-unit>
             <trans-unit id="forecast_import.result_removed">
                 <source>forecast_import.result_removed</source>
-                <target>Removed or skipped in Forecast</target>
+                <target>To remove</target>
             </trans-unit>
             <trans-unit id="forecast_import.result_plannings">
                 <source>forecast_import.result_plannings</source>
@@ -312,7 +312,7 @@
             </trans-unit>
             <trans-unit id="forecast_import.run_help">
                 <source>forecast_import.run_help</source>
-                <target>Assignments that are left out keep whatever an earlier import created. Run the import again whenever Forecast changes.</target>
+                <target>Plans already up to date, assignments left out and plannings made in Kimai are not touched.</target>
             </trans-unit>
             <trans-unit id="forecast_import.back_to_projects">
                 <source>forecast_import.back_to_projects</source>
@@ -320,7 +320,263 @@
             </trans-unit>
             <trans-unit id="forecast_import.run">
                 <source>forecast_import.run</source>
-                <target>Import</target>
+                <target>Import planning</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.steps">
+                <source>forecast_import.steps</source>
+                <target>Import steps</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.step_read_status">
+                <source>forecast_import.step_read_status</source>
+                <target>%count% assignments read</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.read_title">
+                <source>forecast_import.read_title</source>
+                <target>Read the plan from Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.read_safe">
+                <source>forecast_import.read_safe</source>
+                <target>Reading is safe. It copies Forecast's current plan into Kimai so you can review it in the next steps. Nothing in the Weekly Planner changes until you import in the last step.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.reading">
+                <source>forecast_import.reading</source>
+                <target>Reading Forecast. A year of planning takes a few seconds.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.read_result">
+                <source>forecast_import.read_result</source>
+                <target>What was read</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.nothing_read">
+                <source>forecast_import.nothing_read</source>
+                <target>Nothing has been read yet. Read Forecast to see its people, projects and planning here.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.read_just_now">
+                <source>forecast_import.read_just_now</source>
+                <target>Forecast was read. Nothing has been imported yet.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.read_when">
+                <source>forecast_import.read_when</source>
+                <target>Read %date%, planning from %begin% to %end%.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.people_with_planning">
+                <source>forecast_import.people_with_planning</source>
+                <target>People and placeholders with planning</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.projects_with_planning">
+                <source>forecast_import.projects_with_planning</source>
+                <target>Projects with planning</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.of_which_time_off">
+                <source>forecast_import.of_which_time_off</source>
+                <target>Of the assignments, time off</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.since_previous">
+                <source>forecast_import.since_previous</source>
+                <target>Since the previous read</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.diff_new">
+                <source>forecast_import.diff_new</source>
+                <target>%count% new</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.diff_changed">
+                <source>forecast_import.diff_changed</source>
+                <target>%count% changed</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.diff_gone">
+                <source>forecast_import.diff_gone</source>
+                <target>%count% gone from Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.diff_removed">
+                <source>forecast_import.diff_removed</source>
+                <target>%count% to remove</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.diff_unchanged">
+                <source>forecast_import.diff_unchanged</source>
+                <target>%count% unchanged</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.next_people">
+                <source>forecast_import.next_people</source>
+                <target>Next: people</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.fix_projects">
+                <source>forecast_import.fix_projects</source>
+                <target>Map projects</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.fix_people">
+                <source>forecast_import.fix_people</source>
+                <target>Map people</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.run_title">
+                <source>forecast_import.run_title</source>
+                <target>Import planning</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.run_summary">
+                <source>forecast_import.run_summary</source>
+                <target>Creates %created% plannings for %people% people and removes %removed% earlier imported ones.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.run_nothing">
+                <source>forecast_import.run_nothing</source>
+                <target>Nothing to import: the planner already matches what was read from Forecast. Read Forecast again to pick up its latest changes.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.importing">
+                <source>forecast_import.importing</source>
+                <target>Importing. This can take a moment for a large plan.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.imported_title">
+                <source>forecast_import.imported_title</source>
+                <target>Planning imported</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.imported_summary">
+                <source>forecast_import.imported_summary</source>
+                <target>%plannings% plannings created: %created% new assignments, %updated% changed, %removed% removed, %unchanged% already up to date.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.open_planner">
+                <source>forecast_import.open_planner</source>
+                <target>Open the Weekly Planner</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.per_person">
+                <source>forecast_import.per_person</source>
+                <target>Per person</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.hours_planned">
+                <source>forecast_import.hours_planned</source>
+                <target>%hours% h planned</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.what">
+                <source>forecast_import.what</source>
+                <target>What</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.when">
+                <source>forecast_import.when</source>
+                <target>When</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.hours_per_day">
+                <source>forecast_import.hours_per_day</source>
+                <target>Hours per day</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.whole_day">
+                <source>forecast_import.whole_day</source>
+                <target>Whole day</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.tentative">
+                <source>forecast_import.tentative</source>
+                <target>Tentative</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.parts">
+                <source>forecast_import.parts</source>
+                <target>In %count% parts, around days off</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.nothing_planned">
+                <source>forecast_import.nothing_planned</source>
+                <target>Nothing to import yet. Map people and projects first.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status.created">
+                <source>forecast_import.status.created</source>
+                <target>New</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status.updated">
+                <source>forecast_import.status.updated</source>
+                <target>Changed</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status.removed">
+                <source>forecast_import.status.removed</source>
+                <target>Remove</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.status.unchanged">
+                <source>forecast_import.status.unchanged</source>
+                <target>Up to date</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.title">
+                <source>forecast_import.guide.title</source>
+                <target>How the import works</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.toggle">
+                <source>forecast_import.guide.toggle</source>
+                <target>Show or hide</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.intro">
+                <source>forecast_import.guide.intro</source>
+                <target>The import copies your team's plan from Harvest Forecast into the Weekly Planner, so nobody has to type the coming months in again. It works in five steps. Only the last one writes anything, and you can go back to any step at any time.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.read_title">
+                <source>forecast_import.guide.read_title</source>
+                <target>Read Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.read">
+                <source>forecast_import.guide.read</source>
+                <target>Enter your Forecast account ID and a Harvest personal access token. The import reads people, projects and planning for the dates you choose and keeps a copy for the next steps. The token is used for this one read and never stored. Nothing is imported yet.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.people_title">
+                <source>forecast_import.guide.people_title</source>
+                <target>People</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.people">
+                <source>forecast_import.guide.people</source>
+                <target>Each Forecast person is matched to the Kimai user with the same email address, marked "Automatic". Change any match, or choose not to import someone's planning. Placeholders are skipped, because the planner plans people, but you can give one to a user.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.projects_title">
+                <source>forecast_import.guide.projects_title</source>
+                <target>Projects</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.projects">
+                <source>forecast_import.guide.projects</source>
+                <target>Project names rarely match exactly between Forecast and Kimai, so the import suggests the closest Kimai project by comparing customer and project names. Strong suggestions are ticked: accept them in one go, then decide the rest. A Forecast project can go to a customer without a project, become time off, or be left out. Forecast's "Time Off" project becomes time off by itself.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.tentative_title">
+                <source>forecast_import.guide.tentative_title</source>
+                <target>Tentative work</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.tentative">
+                <source>forecast_import.guide.tentative</source>
+                <target>Forecast has no tentative flag. If you tag projects that are not signed yet, choose those tags here and their planning arrives as tentative planning.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.preview_title">
+                <source>forecast_import.guide.preview_title</source>
+                <target>Preview and import</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.preview">
+                <source>forecast_import.guide.preview</source>
+                <target>See exactly what the import would do, per person: what is new, what changed in Forecast, what will be removed and what is already up to date, plus anything left out and why. Nothing is written until you press "Import planning".</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.again_title">
+                <source>forecast_import.guide.again_title</source>
+                <target>Running it again</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.again">
+                <source>forecast_import.guide.again</source>
+                <target>Until you switch Forecast off, repeat it whenever Forecast changes: read Forecast again, map anything new, preview, import. Each planning remembers where it came from, so nothing is created twice and plans that did not change are left alone.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_title">
+                <source>forecast_import.guide.expect_title</source>
+                <target>What to expect</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_days">
+                <source>forecast_import.guide.expect_days</source>
+                <target>Forecast books working days only. Plannings are cut around each person's days off and public holidays, so a booking from Thursday to Tuesday arrives as Thursday to Friday and Monday to Tuesday.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_hours">
+                <source>forecast_import.guide.expect_hours</source>
+                <target>Hours per day come straight from Forecast. Time off without hours becomes a whole day off.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_time_off">
+                <source>forecast_import.guide.expect_time_off</source>
+                <target>Time off reduces a person's capacity in the planner instead of counting as planned work.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_range">
+                <source>forecast_import.guide.expect_range</source>
+                <target>Only the dates you read are touched. Nothing before the start date is created or changed.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_edits">
+                <source>forecast_import.guide.expect_edits</source>
+                <target>Changes made in Kimai to an imported planning stay until the same assignment changes in Forecast. Then Forecast wins, because it is still the source until you switch it off.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.guide.expect_not">
+                <source>forecast_import.guide.expect_not</source>
+                <target>Milestones, budgets and roles in Forecast are not imported. "Start over" removes every imported planning if you want a clean slate; your mapping decisions are kept.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.range_changed">
+                <source>forecast_import.range_changed</source>
+                <target>The dates differ from the previous read, so only the days both reads cover are compared.</target>
             </trans-unit>
         </body>
     </file>
