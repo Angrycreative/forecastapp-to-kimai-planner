@@ -6,7 +6,7 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 
 ## What it does
 
-- **Reads Forecast with a token you don't have to trust it with.** You enter a Harvest personal access token and your Forecast account ID. The token is used for that one read and never stored. The plugin only ever reads: it cannot change anything in Forecast.
+- **Reads Forecast, never writes to it.** You enter a Harvest personal access token and your Forecast account ID. The plugin only ever reads: it cannot change anything in Forecast. Tick "Remember" to keep the token, encrypted, for the next read, and clear it with one button when you are done; the screen reminds you after an import.
 - **Matches people automatically.** Forecast people are matched to Kimai users by email address. You can change any match, or leave someone out.
 - **Suggests where each project goes.** Project names rarely survive a move unchanged ("Acme / Acme Marketing" in Forecast, "Acme Ltd / Acme Marketing Services" in Kimai), so the plugin scores how alike the customer and project names are and suggests the closest Kimai project. Strong suggestions are ticked for you to accept in one go; you confirm or change the rest. A Forecast project can also go to a customer without a project.
 - **Brings time off across as time off.** Forecast's "Time Off" project becomes planner time off, whole days included.
@@ -42,7 +42,7 @@ Super admins get the `forecast_import` permission and find **Forecast import** u
 
 A step bar on every page shows where you are and how far each step is, and a collapsible guide on the first step explains each one.
 
-1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created. Reading changes nothing in the planner.
+1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created. Reading changes nothing in the planner. The dates you chose stay in the form for the next read.
 2. **People.** Check the automatic matches and decide about anyone unmatched. Placeholders are skipped by default because the planner plans people, but you can give one to a user.
 3. **Projects.** Accept the ticked suggestions, then go through the rest. Unmapped projects are listed first.
 4. **Tentative work.** Tick the tags that mean "not confirmed yet".
@@ -55,7 +55,7 @@ Run it again whenever Forecast changes: read Forecast again, review anything new
 For large accounts or a scripted cutover. The mapping decisions made on the screen are used; people are still matched by email without them.
 
 ```bash
-# the token comes from FORECAST_TOKEN, or is asked for without echoing it
+# the token comes from FORECAST_TOKEN, else the token saved on the screen, else it is asked for without echoing it
 FORECAST_TOKEN=... bin/console kimai:forecast-import --fetch --account-id=123456 --dry-run
 bin/console kimai:forecast-import --accept-suggestions   # use the last data read, accept confident suggestions, import
 ```
@@ -69,6 +69,7 @@ Forecast has no official public API. This plugin uses the endpoints Forecast's o
 What we learned from a real account, in case it saves you time:
 
 - An assignment's `allocation` is seconds per day; `null` means a whole day and is how most time off is stored.
+- A day off given to everyone at once (New Year's Day, say) is a "Time Off" assignment with neither a person nor a placeholder. These are not imported, since they are not anyone's in particular: set such days as public holidays in the planner. The preview lists them.
 - Repeating assignments arrive already expanded, one assignment per repeat.
 - Few projects carry a `harvest_id`, even in accounts that came from Harvest, so names are the reliable way to match.
 
@@ -80,7 +81,9 @@ What we learned from a real account, in case it saves you time:
 
 ## Security
 
-The token is never stored, logged or shown. One exception to know about: with Symfony's debug toolbar enabled (`APP_ENV=dev`), the profiler records outgoing HTTP requests and submitted forms, token included, so run imports on production-mode instances or clear the profiler afterwards.
+- **The token is kept only if you choose to.** Untick "Remember" and it is used for that one read and forgotten. Ticked, it is stored encrypted (libsodium secretbox, XSalsa20-Poly1305) under a key derived from Kimai's `APP_SECRET`, and only after Forecast has accepted it. A database dump alone does not reveal it; someone with both the database and the `APP_SECRET` can decrypt it, so clear it once the migration is done. Changing `APP_SECRET` makes a saved token unreadable, and you are simply asked for it again.
+- It is never logged, shown or sent anywhere but `api.forecastapp.com`.
+- With Symfony's debug toolbar enabled (`APP_ENV=dev`), the profiler records outgoing HTTP requests and submitted forms, token included, so run imports on production-mode instances or clear the profiler afterwards.
 
 ## Development
 

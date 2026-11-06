@@ -17,6 +17,14 @@
                 <a href="{{ path('planner_week', {'date': imported.begin}) }}" class="btn btn-success btn-sm mt-2">{{ 'forecast_import.open_planner'|trans }}</a>
             {% endif %}
         </div>
+        {% if savedToken %}
+            <form method="post" action="{{ path('forecast_import_clear_token') }}" class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+                <span class="flex-fill" style="min-width: 0">{{ 'forecast_import.clear_after_import'|trans }}</span>
+                <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_token') }}">
+                <input type="hidden" name="back" value="preview">
+                <button type="submit" class="btn btn-sm btn-warning">{{ 'forecast_import.clear_token'|trans }}</button>
+            </form>
+        {% endif %}
     {% endif %}
 
     <p class="text-secondary" style="max-width: 75ch">

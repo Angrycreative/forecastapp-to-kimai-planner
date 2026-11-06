@@ -25,3 +25,7 @@ services:
     KimaiPlugin\ForecastImportBundle\Import\KimaiWorkDayCalendar:
         arguments:
             $holidayProvider: '@?KimaiPlugin\PlannerBundle\Holiday\HolidayProviderInterface'
+
+    KimaiPlugin\ForecastImportBundle\Import\TokenVault:
+        arguments:
+            $secret: '%kernel.secret%'

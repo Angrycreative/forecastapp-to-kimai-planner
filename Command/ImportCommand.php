@@ -17,6 +17,7 @@ use KimaiPlugin\ForecastImportBundle\Import\ForecastImport;
 use KimaiPlugin\ForecastImportBundle\Import\ImportResult;
 use KimaiPlugin\ForecastImportBundle\Import\MappingService;
 use KimaiPlugin\ForecastImportBundle\Import\Plan;
+use KimaiPlugin\ForecastImportBundle\Import\TokenVault;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,6 +35,7 @@ final class ImportCommand extends Command
     public function __construct(
         private readonly ForecastImport $import,
         private readonly MappingService $mappings,
+        private readonly TokenVault $vault,
     ) {
         parent::__construct();
     }
@@ -42,14 +44,15 @@ final class ImportCommand extends Command
     {
         $this
             ->addOption('fetch', null, InputOption::VALUE_NONE, 'Read Forecast first; otherwise the last data read is used')
-            ->addOption('account-id', null, InputOption::VALUE_REQUIRED, 'Forecast account ID, with --fetch')
+            ->addOption('account-id', null, InputOption::VALUE_REQUIRED, 'Forecast account ID, with --fetch (default: the saved token\'s account)')
             ->addOption('begin', null, InputOption::VALUE_REQUIRED, 'First day to import, with --fetch', 'today')
             ->addOption('end', null, InputOption::VALUE_REQUIRED, 'Last day to import, with --fetch', 'today +12 months')
             ->addOption('accept-suggestions', null, InputOption::VALUE_NONE, 'Map unmapped projects to their confident suggestions')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would happen without writing anything')
             ->setHelp(<<<'HELP'
-                The Harvest personal access token is read from the FORECAST_TOKEN environment variable, or asked for
-                without echoing it. It is never stored.
+                The Harvest personal access token is read from the FORECAST_TOKEN environment variable, else the token
+                saved (encrypted) on the import screen is used, else it is asked for without echoing it. The command
+                never saves a token itself. --account-id defaults to the account of the saved token.
 
                   FORECAST_TOKEN=... bin/console kimai:forecast-import --fetch --account-id=123456 --dry-run
                 HELP);
@@ -67,9 +70,12 @@ final class ImportCommand extends Command
 
         try {
             if ($input->getOption('fetch')) {
-                $token = getenv('FORECAST_TOKEN') ?: (string) $io->askHidden('Harvest personal access token');
+                // FORECAST_TOKEN first, then the token saved on the import screen, then ask
+                $saved = $this->vault->load();
+                $accountId = (string) ($input->getOption('account-id') ?? $saved?->accountId ?? '');
+                $token = getenv('FORECAST_TOKEN') ?: ($saved !== null && $saved->accountId === $accountId ? $saved->token() : (string) $io->askHidden('Harvest personal access token'));
                 $read = $this->import->fetch(
-                    new ForecastCredentials((string) $input->getOption('account-id'), $token),
+                    new ForecastCredentials($accountId, $token),
                     new \DateTimeImmutable((string) $input->getOption('begin') . ' midnight'),
                     new \DateTimeImmutable((string) $input->getOption('end') . ' midnight'),
                 );

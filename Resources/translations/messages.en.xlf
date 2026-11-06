@@ -52,7 +52,7 @@
             </trans-unit>
             <trans-unit id="forecast_import.token_help">
                 <source>forecast_import.token_help</source>
-                <target>Create one at id.getharvest.com/developers. It is used to read Forecast this once and is never stored.</target>
+                <target>Create one at id.getharvest.com/developers. Tick "Remember" below to keep it, encrypted, for the next read.</target>
             </trans-unit>
             <trans-unit id="forecast_import.begin">
                 <source>forecast_import.begin</source>
@@ -504,7 +504,7 @@
             </trans-unit>
             <trans-unit id="forecast_import.guide.read">
                 <source>forecast_import.guide.read</source>
-                <target>Enter your Forecast account ID and a Harvest personal access token. The import reads people, projects and planning for the dates you choose and keeps a copy for the next steps. The token is used for this one read and never stored. Nothing is imported yet.</target>
+                <target>Enter your Forecast account ID and a Harvest personal access token. The import reads people, projects and planning for the dates you choose and keeps a copy for the next steps. Nothing is imported yet. The token is only kept if you tick "Remember", and then encrypted; clear it once you have finished importing.</target>
             </trans-unit>
             <trans-unit id="forecast_import.guide.people_title">
                 <source>forecast_import.guide.people_title</source>
@@ -657,6 +657,38 @@
             <trans-unit id="forecast_import.bookings">
                 <source>forecast_import.bookings</source>
                 <target>{1} 1 booking|]1,Inf[ %count% bookings</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.for_everyone">
+                <source>forecast_import.problem.for_everyone</source>
+                <target>Days off Forecast gives everyone at once. They are not imported: set them as public holidays in the planner instead</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.token_help_saved">
+                <source>forecast_import.token_help_saved</source>
+                <target>A saved token is used when you leave this empty. Type a new one to replace it.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.remember_token">
+                <source>forecast_import.remember_token</source>
+                <target>Remember the token for the next read</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.remember_token_help">
+                <source>forecast_import.remember_token_help</source>
+                <target>Kept encrypted with this Kimai's secret key, and only after Forecast has accepted it. Clear it when you are done.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.token_needed">
+                <source>forecast_import.token_needed</source>
+                <target>Enter a token: none is saved for this account.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.token_saved_notice">
+                <source>forecast_import.token_saved_notice</source>
+                <target>A token for account %account% is saved, encrypted, since %date%.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.clear_token">
+                <source>forecast_import.clear_token</source>
+                <target>Clear saved token</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.clear_after_import">
+                <source>forecast_import.clear_after_import</source>
+                <target>A Harvest token is still saved. Clear it unless you plan to import again: a token in Kimai is a key to your Forecast account.</target>
             </trans-unit>
         </body>
     </file>

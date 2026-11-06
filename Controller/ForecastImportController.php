@@ -29,7 +29,9 @@ use KimaiPlugin\ForecastImportBundle\Import\Preview;
 use KimaiPlugin\ForecastImportBundle\Import\ReadSummary;
 use KimaiPlugin\ForecastImportBundle\Import\ProjectSuggester;
 use KimaiPlugin\ForecastImportBundle\Import\Target;
+use KimaiPlugin\ForecastImportBundle\Import\TokenVault;
 use KimaiPlugin\ForecastImportBundle\Repository\ImportedPlanningRepository;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -52,6 +54,7 @@ final class ForecastImportController extends AbstractController
         private readonly ImportedPlanningRepository $links,
         private readonly KimaiCatalogue $catalogue,
         private readonly TranslatorInterface $translator,
+        private readonly TokenVault $vault,
     ) {
     }
 
@@ -59,31 +62,50 @@ final class ForecastImportController extends AbstractController
     public function index(Request $request): Response
     {
         $data = $this->import->data();
-        $end = $data !== null && $data->end > new \DateTimeImmutable('today') ? \DateTime::createFromImmutable($data->end) : new \DateTime('today +12 months');
+        // the dates of the last read, so reading again picks up where you were; today to a year ahead the first time
+        $saved = $this->vault->saved();
         $form = $this->createForm(ConnectForm::class, [
-            'accountId' => $data?->accountId,
-            'begin' => new \DateTime('today'),
-            'end' => $end,
-        ], ['action' => $this->generateUrl('forecast_import')]);
+            'accountId' => $data?->accountId ?? $saved?->getAccountId(),
+            'begin' => $data !== null ? \DateTime::createFromImmutable($data->begin) : new \DateTime('today'),
+            'end' => $data !== null ? \DateTime::createFromImmutable($data->end) : new \DateTime('today +12 months'),
+            'remember' => true,
+        ], ['action' => $this->generateUrl('forecast_import'), 'token_saved' => $saved !== null]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $values = $form->getData();
+            $accountId = (string) $values['accountId'];
+            $typed = trim((string) $values['token']);
             try {
-                $read = $this->import->fetch(
-                    new ForecastCredentials((string) $values['accountId'], (string) $values['token']),
-                    \DateTimeImmutable::createFromMutable($values['begin'])->setTime(0, 0),
-                    \DateTimeImmutable::createFromMutable($values['end'])->setTime(0, 0),
-                );
-                $request->getSession()->set(self::SESSION_READ, $read->toArray());
+                if ($typed !== '') {
+                    $credentials = new ForecastCredentials($accountId, $typed);
+                } else {
+                    // no token typed: the saved one, for the account it was saved for
+                    $credentials = $this->vault->load();
+                    if ($credentials === null || $credentials->accountId !== $accountId) {
+                        $credentials = null;
+                        $form->get('token')->addError(new FormError($this->translator->trans('forecast_import.token_needed')));
+                    }
+                }
+                if ($credentials !== null) {
+                    $read = $this->import->fetch(
+                        $credentials,
+                        \DateTimeImmutable::createFromMutable($values['begin'])->setTime(0, 0),
+                        \DateTimeImmutable::createFromMutable($values['end'])->setTime(0, 0),
+                    );
+                    // a typed token is kept only once Forecast has accepted it, and only when asked to
+                    if ($typed !== '') {
+                        $values['remember'] ? $this->vault->save($credentials) : $this->vault->clear();
+                    }
+                    $request->getSession()->set(self::SESSION_READ, $read->toArray());
 
-                return $this->redirectToRoute('forecast_import');
+                    return $this->redirectToRoute('forecast_import');
+                }
             } catch (ForecastApiException $exception) {
                 $this->flashError('forecast_import.fetch_failed', $exception->getMessage());
             }
         }
 
-        // shown once, right after reading; the counts below stay from the stored data
         $read = $request->getSession()->remove(self::SESSION_READ);
 
         return $this->render('@ForecastImport/index.html.twig', [
@@ -91,6 +113,7 @@ final class ForecastImportController extends AbstractController
             'data' => $data,
             'read' => \is_array($read) && $data !== null ? ReadSummary::fromArray($read) : null,
             'steps' => $this->steps($data, 'read'),
+            'savedToken' => $this->vault->saved(),
             'imported' => $this->links->countPlannings(),
             'capabilities' => $this->import->capabilities(),
         ]);
@@ -304,6 +327,7 @@ final class ForecastImportController extends AbstractController
             'result' => $result,
             'people' => Preview::byPerson($plan, $result),
             'imported' => \is_array($imported) ? $imported : null,
+            'savedToken' => $this->vault->saved(),
             'blocking' => Plan::BLOCKING,
             'capabilities' => $this->import->capabilities(),
         ]);
@@ -341,6 +365,19 @@ final class ForecastImportController extends AbstractController
         }
 
         return $this->redirectToRoute('forecast_import_preview');
+    }
+
+    #[Route(path: '/token/clear', name: 'forecast_import_clear_token', methods: ['POST'])]
+    public function clearToken(Request $request): Response
+    {
+        if ($this->isCsrfTokenValid('forecast_import_token', (string) $request->request->get('_token'))) {
+            $this->vault->clear();
+            $this->flashSuccess('forecast_import.token_cleared');
+        } else {
+            $this->flashError('forecast_import.expired');
+        }
+
+        return $this->redirectToRoute($request->request->get('back') === 'preview' ? 'forecast_import_preview' : 'forecast_import');
     }
 
     #[Route(path: '/remove', name: 'forecast_import_remove', methods: ['POST'])]
