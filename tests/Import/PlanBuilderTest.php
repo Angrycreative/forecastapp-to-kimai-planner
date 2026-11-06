@@ -217,12 +217,16 @@ final class PlanBuilderTest extends TestCase
         self::assertNotSame($base, $tentative);
     }
 
-    public function testEveryAssignmentGetsItsOwnRecurrenceGroup(): void
+    public function testOnlyAssignmentsCutAroundDaysOffFormASeries(): void
     {
-        $assignment = $this->build([$this->assignment(42, '2026-11-09', '2026-11-09', 3600)])->assignments()[42];
+        $plan = $this->build([
+            $this->assignment(42, '2026-11-09', '2026-11-11', 3600),
+            $this->assignment(43, '2026-11-12', '2026-11-17', 3600),
+        ]);
 
-        self::assertSame('forecast-42', $assignment->recurrenceGroup());
-        self::assertSame(42, \KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment::idFromGroup('forecast-42'));
+        self::assertNull($plan->assignments()[42]->recurrenceGroup());
+        self::assertSame('forecast-43', $plan->assignments()[43]->recurrenceGroup());
+        self::assertSame(43, \KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment::idFromGroup('forecast-43'));
         self::assertNull(\KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment::idFromGroup('a1b2c3'));
     }
 
