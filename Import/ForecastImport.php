@@ -35,12 +35,16 @@ class ForecastImport
         return $this->capabilities;
     }
 
-    public function fetch(ForecastCredentials $credentials, \DateTimeImmutable $begin, \DateTimeImmutable $end): ForecastData
+    /**
+     * Reads Forecast and keeps the result for the next steps. Writes nothing to the planner.
+     */
+    public function fetch(ForecastCredentials $credentials, \DateTimeImmutable $begin, \DateTimeImmutable $end): ReadSummary
     {
+        $previous = $this->data();
         $data = $this->client->fetch($credentials, $begin, $end);
         $this->snapshots->replace($data);
 
-        return $data;
+        return ReadSummary::compare($data, $previous);
     }
 
     public function data(): ?ForecastData

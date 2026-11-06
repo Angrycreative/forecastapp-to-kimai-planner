@@ -1,75 +1,85 @@
 {% extends '@ForecastImport/_layout.html.twig' %}
 
-{% block heading %}{{ 'forecast_import.title'|trans }}{% endblock %}
+{% block heading %}{{ 'forecast_import.step_connect'|trans }}{% endblock %}
 
 {% block content %}
     {% if not capabilities.plannerInstalled %}
         <div class="alert alert-danger">{{ 'forecast_import.planner_missing'|trans }}</div>
     {% endif %}
 
-    <p class="text-secondary" style="max-width: 70ch">{{ 'forecast_import.intro'|trans }}</p>
+    {{ include('@ForecastImport/_guide.html.twig', {'open': data is null}) }}
 
     <div class="row row-cards">
-        <div class="col-lg-6">
+        <div class="col-lg-7">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title"><span class="badge bg-blue-lt me-2">1</span>{{ 'forecast_import.step_connect'|trans }}</h3>
+                    <h3 class="card-title">{{ 'forecast_import.read_title'|trans }}</h3>
                 </div>
-                {{ form_start(form) }}
+                {{ form_start(form, {'attr': {'data-forecast-busy': 'read'}}) }}
                 <div class="card-body">
-                    {% if data %}
-                        <div class="alert alert-info">
-                            {{ 'forecast_import.last_fetch'|trans({
-                                '%date%': data.fetchedAt|date_time,
-                                '%begin%': data.begin|date_short,
-                                '%end%': data.end|date_short,
-                                '%count%': data.assignments|length
-                            }) }}
-                        </div>
-                    {% endif %}
+                    <p class="text-secondary">{{ 'forecast_import.read_safe'|trans }}</p>
                     {{ form_widget(form) }}
                 </div>
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">{{ (data ? 'forecast_import.fetch_again' : 'forecast_import.fetch')|trans }}</button>
+                <div class="card-footer d-flex align-items-center gap-3">
+                    <span class="text-secondary small" data-forecast-busy-note hidden>{{ 'forecast_import.reading'|trans }}</span>
+                    <button type="submit" class="btn btn-primary ms-auto">{{ (data ? 'forecast_import.fetch_again' : 'forecast_import.fetch')|trans }}</button>
                 </div>
                 {{ form_end(form) }}
             </div>
         </div>
 
-        <div class="col-lg-6">
+        <div class="col-lg-5">
             <div class="card">
-                <div class="list-group list-group-flush">
-                    {% set steps = [
-                        {'n': 2, 'route': 'forecast_import_people', 'title': 'forecast_import.step_people', 'done': summary ? summary.people_mapped : null, 'total': summary ? summary.people : null},
-                        {'n': 3, 'route': 'forecast_import_projects', 'title': 'forecast_import.step_projects', 'done': summary ? summary.projects_mapped : null, 'total': summary ? summary.projects : null},
-                        {'n': 4, 'route': 'forecast_import_tentative', 'title': 'forecast_import.step_tentative', 'done': summary ? summary.tentative_tags : null, 'total': null},
-                        {'n': 5, 'route': 'forecast_import_preview', 'title': 'forecast_import.step_preview', 'done': null, 'total': null},
-                    ] %}
-                    {% for step in steps %}
-                        {% if data %}
-                            <a href="{{ path(step.route) }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
-                        {% else %}
-                            <div class="list-group-item d-flex align-items-center gap-3 text-secondary">
-                        {% endif %}
-                            <span class="badge bg-blue-lt">{{ step.n }}</span>
-                            <span class="flex-fill">{{ step.title|trans }}</span>
-                            {% if step.total is not null %}
-                                <span class="badge {{ step.done == step.total ? 'bg-green-lt' : 'bg-yellow-lt' }}">{{ 'forecast_import.mapped_of'|trans({'%done%': step.done, '%total%': step.total}) }}</span>
-                            {% elseif step.done is not null %}
-                                <span class="badge bg-secondary-lt">{{ 'forecast_import.tags_chosen'|trans({'%count%': step.done}) }}</span>
-                            {% endif %}
-                        {% if data %}</a>{% else %}</div>{% endif %}
-                    {% endfor %}
+                <div class="card-header">
+                    <h3 class="card-title">{{ 'forecast_import.read_result'|trans }}</h3>
                 </div>
+                {% if data is null %}
+                    <div class="card-body">
+                        <p class="text-secondary m-0">{{ 'forecast_import.nothing_read'|trans }}</p>
+                    </div>
+                {% else %}
+                    <div class="card-body">
+                        {% if read %}
+                            <div class="alert alert-success mb-3">{{ 'forecast_import.read_just_now'|trans }}</div>
+                        {% endif %}
+                        <p class="text-secondary">
+                            {{ 'forecast_import.read_when'|trans({'%date%': data.fetchedAt|date_time, '%begin%': data.begin|date_short, '%end%': data.end|date_short}) }}
+                        </p>
+                        {% set counts = data.assignmentCounts %}
+                        <dl class="row mb-0" style="font-variant-numeric: tabular-nums">
+                            <dt class="col-8 fw-normal">{{ 'forecast_import.assignments'|trans }}</dt><dd class="col-4 text-end mb-1">{{ data.assignments|length }}</dd>
+                            <dt class="col-8 fw-normal">{{ 'forecast_import.people_with_planning'|trans }}</dt><dd class="col-4 text-end mb-1">{{ counts.people|length }}</dd>
+                            <dt class="col-8 fw-normal">{{ 'forecast_import.projects_with_planning'|trans }}</dt><dd class="col-4 text-end mb-1">{{ counts.projects|length }}</dd>
+                            {% if read %}
+                                <dt class="col-8 fw-normal">{{ 'forecast_import.of_which_time_off'|trans }}</dt><dd class="col-4 text-end mb-1">{{ read.timeOff }}</dd>
+                            {% endif %}
+                        </dl>
+                        {% if read and read.hasPrevious %}
+                            <hr class="my-3">
+                            <div class="fw-medium mb-2">{{ 'forecast_import.since_previous'|trans }}</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-green-lt">{{ 'forecast_import.diff_new'|trans({'%count%': read.new}) }}</span>
+                                <span class="badge bg-yellow-lt">{{ 'forecast_import.diff_changed'|trans({'%count%': read.changed}) }}</span>
+                                <span class="badge bg-red-lt">{{ 'forecast_import.diff_gone'|trans({'%count%': read.gone}) }}</span>
+                            </div>
+                            {% if read.rangeChanged %}
+                                <p class="text-secondary small mt-2 mb-0">{{ 'forecast_import.range_changed'|trans }}</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{{ path('forecast_import_people') }}" class="btn btn-primary">{{ 'forecast_import.next_people'|trans }}</a>
+                    </div>
+                {% endif %}
             </div>
 
             {% if imported > 0 %}
                 <div class="card mt-3">
                     <div class="card-header"><h3 class="card-title">{{ 'forecast_import.start_over'|trans }}</h3></div>
-                    <form method="post" action="{{ path('forecast_import_remove') }}">
+                    <form method="post" action="{{ path('forecast_import_remove') }}" data-forecast-busy="remove">
                         <div class="card-body">
                             <p>{{ 'forecast_import.start_over_help'|trans({'%count%': imported}) }}</p>
-                            <label class="form-check">
+                            <label class="form-check m-0">
                                 <input type="checkbox" class="form-check-input" name="confirm" value="1" id="forecast_import_remove_confirm" required>
                                 <span class="form-check-label">{{ 'forecast_import.start_over_confirm'|trans({'%count%': imported}) }}</span>
                             </label>

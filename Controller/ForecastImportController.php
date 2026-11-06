@@ -23,7 +23,10 @@ use KimaiPlugin\ForecastImportBundle\Form\TentativeTagsForm;
 use KimaiPlugin\ForecastImportBundle\Import\ForecastImport;
 use KimaiPlugin\ForecastImportBundle\Import\KimaiCatalogue;
 use KimaiPlugin\ForecastImportBundle\Import\MappingService;
+use KimaiPlugin\ForecastImportBundle\Forecast\ForecastData;
 use KimaiPlugin\ForecastImportBundle\Import\Plan;
+use KimaiPlugin\ForecastImportBundle\Import\Preview;
+use KimaiPlugin\ForecastImportBundle\Import\ReadSummary;
 use KimaiPlugin\ForecastImportBundle\Import\ProjectSuggester;
 use KimaiPlugin\ForecastImportBundle\Import\Target;
 use KimaiPlugin\ForecastImportBundle\Repository\ImportedPlanningRepository;
@@ -40,6 +43,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[IsGranted('forecast_import')]
 final class ForecastImportController extends AbstractController
 {
+    private const SESSION_READ = 'forecast_import.read';
+    private const SESSION_IMPORTED = 'forecast_import.imported';
+
     public function __construct(
         private readonly ForecastImport $import,
         private readonly MappingService $mappings,
@@ -53,22 +59,23 @@ final class ForecastImportController extends AbstractController
     public function index(Request $request): Response
     {
         $data = $this->import->data();
+        $end = $data !== null && $data->end > new \DateTimeImmutable('today') ? \DateTime::createFromImmutable($data->end) : new \DateTime('today +12 months');
         $form = $this->createForm(ConnectForm::class, [
             'accountId' => $data?->accountId,
             'begin' => new \DateTime('today'),
-            'end' => new \DateTime('today +12 months'),
+            'end' => $end,
         ], ['action' => $this->generateUrl('forecast_import')]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $values = $form->getData();
             try {
-                $this->import->fetch(
+                $read = $this->import->fetch(
                     new ForecastCredentials((string) $values['accountId'], (string) $values['token']),
                     \DateTimeImmutable::createFromMutable($values['begin'])->setTime(0, 0),
                     \DateTimeImmutable::createFromMutable($values['end'])->setTime(0, 0),
                 );
-                $this->flashSuccess('forecast_import.fetched');
+                $request->getSession()->set(self::SESSION_READ, $read->toArray());
 
                 return $this->redirectToRoute('forecast_import');
             } catch (ForecastApiException $exception) {
@@ -76,24 +83,13 @@ final class ForecastImportController extends AbstractController
             }
         }
 
-        $summary = null;
-        if ($data !== null) {
-            $people = $this->mappings->personRows($data);
-            $projects = $this->mappings->projectRows($data, false);
-            $summary = [
-                'people' => \count($people),
-                'people_mapped' => \count(array_filter($people, static fn (array $row): bool => $row['target'] !== null)),
-                'projects' => \count($projects),
-                'projects_mapped' => \count(array_filter($projects, static fn (array $row): bool => $row['target'] !== null)),
-                'tags' => \count($data->projectTags()),
-                'tentative_tags' => \count($this->mappings->tentativeTags()),
-            ];
-        }
+        $read = $request->getSession()->get(self::SESSION_READ);
 
         return $this->render('@ForecastImport/index.html.twig', [
             'form' => $form->createView(),
             'data' => $data,
-            'summary' => $summary,
+            'read' => \is_array($read) && $data !== null ? ReadSummary::fromArray($read) : null,
+            'steps' => $this->steps($data, 'read'),
             'imported' => $this->links->countPlannings(),
             'capabilities' => $this->import->capabilities(),
         ]);
@@ -108,6 +104,7 @@ final class ForecastImportController extends AbstractController
         }
 
         return $this->render('@ForecastImport/people.html.twig', [
+            'steps' => $this->steps($data, 'people'),
             'data' => $data,
             'rows' => $this->mappings->personRows($data),
         ]);
@@ -152,6 +149,7 @@ final class ForecastImportController extends AbstractController
         }
 
         return $this->render('@ForecastImport/projects.html.twig', [
+            'steps' => $this->steps($data, 'projects'),
             'data' => $data,
             'rows' => $this->mappings->projectRows($data),
             'confident' => ProjectSuggester::CONFIDENT_SCORE,
@@ -243,13 +241,14 @@ final class ForecastImportController extends AbstractController
         }
 
         return $this->render('@ForecastImport/tentative.html.twig', [
+            'steps' => $this->steps($data, 'tentative'),
             'form' => $form->createView(),
             'supported' => $this->import->capabilities()->supportsTentative(),
         ]);
     }
 
     #[Route(path: '/preview', name: 'forecast_import_preview', methods: ['GET'])]
-    public function preview(): Response
+    public function preview(Request $request): Response
     {
         $data = $this->import->data();
         if ($data === null) {
@@ -257,11 +256,16 @@ final class ForecastImportController extends AbstractController
         }
 
         $plan = $this->import->plan($data);
+        $result = $this->import->preview($data);
+        $imported = $request->getSession()->remove(self::SESSION_IMPORTED);
 
         return $this->render('@ForecastImport/preview.html.twig', [
+            'steps' => $this->steps($data, 'preview'),
             'data' => $data,
             'plan' => $plan,
-            'result' => $this->import->preview($data),
+            'result' => $result,
+            'people' => Preview::byPerson($plan, $result),
+            'imported' => \is_array($imported) ? $imported : null,
             'blocking' => Plan::BLOCKING,
             'capabilities' => $this->import->capabilities(),
         ]);
@@ -277,12 +281,15 @@ final class ForecastImportController extends AbstractController
 
         try {
             $result = $this->import->import($data);
-            $this->addFlash('success', $this->translator->trans('forecast_import.imported', [
-                '%created%' => $result->created,
-                '%updated%' => $result->updated,
-                '%removed%' => $result->removed,
-                '%unchanged%' => $result->unchanged,
-            ], 'flashmessages'));
+            $request->getSession()->set(self::SESSION_IMPORTED, [
+                'created' => $result->created,
+                'updated' => $result->updated,
+                'removed' => $result->removed,
+                'unchanged' => $result->unchanged,
+                'planningsCreated' => $result->planningsCreated,
+                'planningsRemoved' => $result->planningsRemoved + $result->planningsShortened,
+                'begin' => $data->begin->format('Y-m-d'),
+            ]);
         } catch (\Exception $exception) {
             $this->flashUpdateException($exception);
         }
@@ -299,6 +306,32 @@ final class ForecastImportController extends AbstractController
         }
 
         return $this->redirectToRoute('forecast_import');
+    }
+
+    /**
+     * The five steps with how far each one is, for the step bar on every page.
+     *
+     * @return list<array{key: string, route: string, title: string, status: ?string, done: bool, active: bool, enabled: bool}>
+     */
+    private function steps(?ForecastData $data, string $active): array
+    {
+        $people = $projects = null;
+        if ($data !== null) {
+            $people = $this->mappings->personRows($data);
+            $projects = $this->mappings->projectRows($data, false);
+        }
+        $mapped = static fn (?array $rows): int => \count(array_filter($rows ?? [], static fn (array $row): bool => $row['target'] !== null));
+        $tr = fn (string $key, array $parameters = []): string => $this->translator->trans($key, $parameters);
+
+        $steps = [
+            ['key' => 'read', 'route' => 'forecast_import', 'title' => $tr('forecast_import.step_connect'), 'status' => $data === null ? null : $tr('forecast_import.step_read_status', ['%count%' => \count($data->assignments)]), 'done' => $data !== null],
+            ['key' => 'people', 'route' => 'forecast_import_people', 'title' => $tr('forecast_import.step_people'), 'status' => $people === null ? null : $tr('forecast_import.mapped_of', ['%done%' => $mapped($people), '%total%' => \count($people)]), 'done' => $people !== null && $mapped($people) === \count($people)],
+            ['key' => 'projects', 'route' => 'forecast_import_projects', 'title' => $tr('forecast_import.step_projects'), 'status' => $projects === null ? null : $tr('forecast_import.mapped_of', ['%done%' => $mapped($projects), '%total%' => \count($projects)]), 'done' => $projects !== null && $mapped($projects) === \count($projects)],
+            ['key' => 'tentative', 'route' => 'forecast_import_tentative', 'title' => $tr('forecast_import.step_tentative'), 'status' => $data === null ? null : $tr('forecast_import.tags_chosen', ['%count%' => \count($this->mappings->tentativeTags())]), 'done' => $data !== null],
+            ['key' => 'preview', 'route' => 'forecast_import_preview', 'title' => $tr('forecast_import.step_preview'), 'status' => null, 'done' => false],
+        ];
+
+        return array_map(static fn (array $step): array => $step + ['active' => $step['key'] === $active, 'enabled' => $step['key'] === 'read' || $data !== null], $steps);
     }
 
     /**
