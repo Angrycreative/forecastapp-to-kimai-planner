@@ -1,0 +1,68 @@
+{% extends '@ForecastImport/_layout.html.twig' %}
+
+{% block heading %}{{ 'forecast_import.step_projects'|trans }}{% endblock %}
+{% block heading_actions %}
+    <a href="{{ path('forecast_import_tentative') }}" class="btn btn-primary">{{ 'forecast_import.next_tentative'|trans }}</a>
+{% endblock %}
+
+{% block content %}
+    <p class="text-secondary" style="max-width: 70ch">{{ 'forecast_import.projects_intro'|trans }}</p>
+    {% set suggested = rows|filter(r => r.target is null and r.suggestions is not empty) %}
+    <form method="post" action="{{ path('forecast_import_accept') }}" id="forecast-import-accept">
+        <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_accept') }}">
+        <div class="card">
+            {% if suggested is not empty %}
+                <div class="card-header">
+                    <div class="text-secondary">{{ 'forecast_import.accept_help'|trans }}</div>
+                    <div class="card-actions">
+                        <button type="submit" class="btn btn-primary">{{ 'forecast_import.accept_selected'|trans }}</button>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th class="w-1"></th>
+                            <th>{{ 'forecast_import.forecast'|trans }}</th>
+                            <th class="text-end">{{ 'forecast_import.assignments'|trans }}</th>
+                            <th>{{ 'forecast_import.kimai'|trans }}</th>
+                            <th class="w-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            {% set best = row.suggestions|first %}
+                            <tr>
+                                <td>
+                                    {% if row.target is null and best %}
+                                        <input type="checkbox" class="form-check-input m-0" name="projects[]" value="{{ row.id }}" id="forecast-project-{{ row.id }}" aria-label="{{ 'forecast_import.accept_one'|trans }}" {{ best.score >= confident ? 'checked' }}>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.client %}<div class="text-secondary small">{{ row.client }}</div>{% endif %}
+                                    {{ row.name }}
+                                    {% if row.archived %}<span class="badge bg-secondary-lt ms-1">{{ 'forecast_import.archived'|trans }}</span>{% endif %}
+                                    {% for tag in row.tags %}<span class="badge bg-secondary-lt ms-1">{{ tag }}</span>{% endfor %}
+                                </td>
+                                <td class="text-end" style="font-variant-numeric: tabular-nums">{{ row.assignments }}</td>
+                                <td>
+                                    {% if row.target is null and best %}
+                                        <span class="text-secondary small">{{ 'forecast_import.suggestion'|trans }}</span>
+                                        <span class="badge {{ best.score >= confident ? 'bg-green-lt' : 'bg-yellow-lt' }} ms-1" title="{{ 'forecast_import.score_help'|trans }}">{{ (best.score * 100)|round }}%</span>
+                                        <div>{{ best.candidate.customerName }} <span class="text-secondary">/</span> {{ best.candidate.projectName }}</div>
+                                    {% else %}
+                                        {{ include('@ForecastImport/_target.html.twig', {'target': row.target}) }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('forecast_import_edit_project', {'id': row.id}) }}" class="btn btn-sm modal-ajax-form">{{ 'forecast_import.change'|trans }}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+{% endblock %}

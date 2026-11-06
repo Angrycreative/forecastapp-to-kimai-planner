@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Runs against an existing Kimai checkout, which supplies Kimai's classes and Symfony:
+
+        KIMAI_DIR=/path/to/kimai tools/phpunit/vendor/bin/phpunit
+
+    Install PHPUnit once with: composer install -d tools/phpunit
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="tools/phpunit/vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="ForecastImportBundle">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>Forecast</directory>
+            <directory>Import</directory>
+        </include>
+    </source>
+</phpunit>

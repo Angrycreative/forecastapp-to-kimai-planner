@@ -1,0 +1,19 @@
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {% set formEditTemplate = kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig' %}
+    {% embed formEditTemplate with {'title': title, 'form': form, 'back': back} %}
+        {% block form_body %}
+            <p class="text-secondary">
+                {% if subtitle %}{{ subtitle }} · {% endif %}{{ 'forecast_import.assignments_count'|trans({'%count%': assignments}) }}
+            </p>
+            {{ form_widget(form) }}
+        {% endblock %}
+    {% endembed %}
+    {% if not kimai_context.modalRequest %}
+        <form method="post" action="{{ resetUrl }}" class="mb-3">
+            <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_reset') }}">
+            <button type="submit" class="btn btn-link px-0">{{ 'forecast_import.reset'|trans }}</button>
+        </form>
+    {% endif %}
+{% endblock %}

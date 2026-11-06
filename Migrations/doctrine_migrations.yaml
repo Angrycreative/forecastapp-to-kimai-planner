@@ -1,0 +1,4 @@
+table_storage:
+    table_name: 'bundle_migration_forecast_import'
+migrations_paths:
+    'KimaiPlugin\ForecastImportBundle\Migrations': 'var/plugins/ForecastImportBundle/Migrations'
