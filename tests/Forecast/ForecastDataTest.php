@@ -29,6 +29,25 @@ final class ForecastDataTest extends TestCase
         ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable(), $collections);
     }
 
+    public function testRefusesAnAssignmentWithoutARealDate(): void
+    {
+        $collections = self::collections();
+        $collections['assignments'][0]['start_date'] = null;
+
+        $this->expectException(ForecastApiException::class);
+        $this->expectExceptionMessage('"start_date" that is not a date');
+        ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable(), $collections);
+    }
+
+    public function testRefusesAnAllocationThatIsNotSeconds(): void
+    {
+        $collections = self::collections();
+        $collections['assignments'][0]['allocation'] = '1h';
+
+        $this->expectException(ForecastApiException::class);
+        ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable(), $collections);
+    }
+
     public function testSurvivesStorage(): void
     {
         $data = ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable('2026-11-06T10:00:00+00:00'), self::collections());

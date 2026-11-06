@@ -32,8 +32,10 @@ final class Preview
                 continue;
             }
             $name = $first->user->getDisplayName();
+            $key = $first->user->getId() ?? spl_object_id($first->user);
             $status = $result->statuses[$id] ?? ImportResult::CREATED;
-            $people[$name]['rows'][] = [
+            $people[$key]['name'] = $name;
+            $people[$key]['rows'][] = [
                 'status' => $status,
                 'label' => $first->timeOff ? '' : ($first->project !== null ? $first->customer?->getName() . ' / ' . $first->project->getName() : (string) $first->customer?->getName()),
                 'begin' => $first->begin,
@@ -44,11 +46,13 @@ final class Preview
                 'parts' => \count($assignment->parts),
                 'comment' => $first->comment,
             ];
-            $people[$name]['hours'] = ($people[$name]['hours'] ?? 0.0) + $assignment->totalHours();
+            $people[$key]['hours'] = ($people[$key]['hours'] ?? 0.0) + $assignment->totalHours();
         }
 
         foreach ($result->removedPlannings as $removed) {
-            $people[$removed['user']]['rows'][] = [
+            $key = $removed['userId'] ?? 'name:' . $removed['user'];
+            $people[$key]['name'] = $removed['user'];
+            $people[$key]['rows'][] = [
                 'status' => ImportResult::REMOVED,
                 'label' => $removed['label'],
                 'begin' => $removed['begin'],
@@ -59,11 +63,12 @@ final class Preview
                 'parts' => 1,
                 'comment' => null,
             ];
-            $people[$removed['user']]['hours'] ??= 0.0;
+            $people[$key]['hours'] ??= 0.0;
         }
 
         $groups = [];
-        foreach ($people as $name => $person) {
+        foreach ($people as $person) {
+            $name = $person['name'];
             $rows = $person['rows'];
             usort($rows, static fn (array $a, array $b): int => [self::ORDER[$a['status']], $a['begin']] <=> [self::ORDER[$b['status']], $b['begin']]);
             $counts = array_fill_keys(array_keys(self::ORDER), 0);

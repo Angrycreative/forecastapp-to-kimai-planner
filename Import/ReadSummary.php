@@ -53,7 +53,7 @@ final class ReadSummary
             foreach ($data->assignments as $id => $assignment) {
                 if (!isset($previous->assignments[$id])) {
                     $overlaps($assignment) && ++$new;
-                } elseif ($previous->assignments[$id]['updated_at'] !== $assignment['updated_at']) {
+                } elseif ($previous->assignments[$id]['updated_at'] !== $assignment['updated_at'] && $overlaps($assignment)) {
                     ++$changed;
                 }
             }

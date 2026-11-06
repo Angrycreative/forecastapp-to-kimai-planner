@@ -27,22 +27,22 @@ final class PreviewTest extends TestCase
 {
     public function testGroupsByPersonWithChangesFirst(): void
     {
-        $alex = (new User())->setAlias('Alex');
-        $robin = (new User())->setAlias('Robin');
+        $alex = self::user(1, 'Alex');
+        $robin = self::user(2, 'Robin');
         $customer = new Customer('Acme');
         $project = (new Project())->setName('Webshop')->setCustomer($customer);
 
         $plan = new Plan(new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2027-11-08'));
-        $plan->add(new PlannedAssignment(1, [self::part($alex, $customer, $project, '2026-11-16', '2026-11-20', 2.0)]));
-        $plan->add(new PlannedAssignment(2, [self::part($alex, $customer, $project, '2026-11-09', '2026-11-10', 4.0)]));
+        $plan->add(new PlannedAssignment(1, [self::part($alex, $customer, $project, '2026-11-16', '2026-11-20', 2.0)], 'f1'));
+        $plan->add(new PlannedAssignment(2, [self::part($alex, $customer, $project, '2026-11-09', '2026-11-10', 4.0)], 'f2'));
         $plan->add(new PlannedAssignment(3, [
             self::part($robin, null, null, '2026-11-12', '2026-11-13', null, true),
             self::part($robin, null, null, '2026-11-16', '2026-11-16', null, true),
-        ]));
+        ], 'f3'));
 
         $result = new ImportResult(true);
         $result->statuses = [1 => ImportResult::CREATED, 2 => ImportResult::UNCHANGED, 3 => ImportResult::UNCHANGED];
-        $result->removedPlannings[] = ['assignment' => 9, 'user' => 'Robin', 'label' => 'Acme / Old', 'begin' => new \DateTime('2026-12-01'), 'end' => new \DateTime('2026-12-01'), 'hoursPerDay' => 1.0, 'timeOff' => false];
+        $result->removedPlannings[] = ['assignment' => 9, 'userId' => 2, 'user' => 'Robin', 'label' => 'Acme / Old', 'begin' => new \DateTime('2026-12-01'), 'end' => new \DateTime('2026-12-01'), 'hoursPerDay' => 1.0, 'timeOff' => false];
 
         $people = Preview::byPerson($plan, $result);
 
@@ -55,6 +55,14 @@ final class PreviewTest extends TestCase
         self::assertSame('2026-11-16', $people[1]['rows'][1]['end']->format('Y-m-d'));
         self::assertTrue($people[1]['rows'][1]['timeOff']);
         self::assertSame(1, $people[1]['counts'][ImportResult::REMOVED]);
+    }
+
+    private static function user(int $id, string $alias): User
+    {
+        $user = (new User())->setAlias($alias);
+        (new \ReflectionProperty(User::class, 'id'))->setValue($user, $id);
+
+        return $user;
     }
 
     private static function part(User $user, ?Customer $customer, ?Project $project, string $begin, string $end, ?float $hours, bool $timeOff = false): PlannedPart

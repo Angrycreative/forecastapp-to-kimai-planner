@@ -59,6 +59,10 @@ class Mapping
     #[ORM\JoinColumn(name: 'project_id', nullable: true, onDelete: 'SET NULL')]
     private ?Project $project = null;
 
+    /** Whether the decision named a project, so a project deleted since can be told from "customer only". */
+    #[ORM\Column(name: 'with_project', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $hadProject = false;
+
     #[ORM\Column(name: 'updated_at', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $updatedAt;
 
@@ -112,6 +116,7 @@ class Mapping
         $this->user = $target->user;
         $this->customer = $target->customer;
         $this->project = $target->project;
+        $this->hadProject = $target->project !== null;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -122,16 +127,30 @@ class Mapping
     }
 
     /**
-     * The decision as a target, or null when what it pointed at has been deleted in Kimai since.
+     * The decision as a target, or null when what it pointed at has been deleted in Kimai since, so the assignment
+     * shows as unmapped and is left alone until someone decides again.
      */
     public function toTarget(): ?Target
     {
         return match ($this->action) {
             Target::USER => $this->user === null ? null : Target::user($this->user),
-            Target::WORK => $this->customer === null ? null : Target::work($this->customer, $this->project?->getCustomer() === $this->customer ? $this->project : null),
+            Target::WORK => $this->workTarget(),
             Target::TIME_OFF => Target::timeOff(),
             Target::SKIP => Target::skip(),
             default => null,
         };
+    }
+
+    /**
+     * A customer, or a customer and one of its projects. A project deleted since (its column is set to null) or moved to
+     * another customer makes the decision void: importing against the customer alone would quietly change the plan.
+     */
+    private function workTarget(): ?Target
+    {
+        if ($this->customer === null || $this->hadProject && ($this->project === null || $this->project->getCustomer() !== $this->customer)) {
+            return null;
+        }
+
+        return Target::work($this->customer, $this->project);
     }
 }

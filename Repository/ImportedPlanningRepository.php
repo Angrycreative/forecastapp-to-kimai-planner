@@ -14,6 +14,8 @@ namespace KimaiPlugin\ForecastImportBundle\Repository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use KimaiPlugin\ForecastImportBundle\Entity\ImportedPlanning;
+use KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment;
+use KimaiPlugin\PlannerBundle\Entity\PlannedActivity;
 
 /**
  * @extends ServiceEntityRepository<ImportedPlanning>
@@ -26,7 +28,7 @@ class ImportedPlanningRepository extends ServiceEntityRepository
     }
 
     /**
-     * Every link with its planning, grouped by Forecast assignment.
+     * Every link with its planning, grouped by Forecast assignment, including links whose planning was deleted.
      *
      * @return array<int, list<ImportedPlanning>>
      */
@@ -34,7 +36,7 @@ class ImportedPlanningRepository extends ServiceEntityRepository
     {
         $links = $this->createQueryBuilder('i')
             ->select('i', 'a')
-            ->join('i.plannedActivity', 'a')
+            ->leftJoin('i.plannedActivity', 'a')
             ->getQuery()
             ->getResult();
 
@@ -46,8 +48,41 @@ class ImportedPlanningRepository extends ServiceEntityRepository
         return $byAssignment;
     }
 
+    /**
+     * Plannings that belong to an imported assignment but have no link of their own: the other half of an imported
+     * planning someone split or cut a day out of in the planner, which copies the recurrence group but knows nothing
+     * of this import.
+     *
+     * @return array<int, list<PlannedActivity>> by Forecast assignment
+     */
+    public function findUnlinkedParts(): array
+    {
+        $activities = $this->getEntityManager()->createQueryBuilder()
+            ->select('a')
+            ->from(PlannedActivity::class, 'a')
+            ->where('a.recurrenceGroup LIKE :prefix')
+            ->andWhere('NOT EXISTS (SELECT i.id FROM ' . ImportedPlanning::class . ' i WHERE i.plannedActivity = a)')
+            ->setParameter('prefix', PlannedAssignment::GROUP_PREFIX . '%')
+            ->getQuery()
+            ->getResult();
+
+        $byAssignment = [];
+        foreach ($activities as $activity) {
+            $id = PlannedAssignment::idFromGroup((string) $activity->getRecurrenceGroup());
+            if ($id !== null) {
+                $byAssignment[$id][] = $activity;
+            }
+        }
+
+        return $byAssignment;
+    }
+
     public function countPlannings(): int
     {
-        return (int) $this->count([]);
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->where('i.plannedActivity IS NOT NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

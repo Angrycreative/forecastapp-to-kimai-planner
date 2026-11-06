@@ -99,14 +99,17 @@ final class ImportCommand extends Command
             return Command::FAILURE;
         }
 
+        $dryRun = (bool) $input->getOption('dry-run');
         if ($input->getOption('accept-suggestions')) {
-            $io->note(\sprintf('%d project suggestions accepted.', $this->mappings->acceptSuggestions($data)));
+            $accepted = $this->mappings->acceptSuggestions($data, null, save: !$dryRun);
+            $io->note($dryRun
+                ? \sprintf('%d project suggestions would be accepted. Dry run: not saved, so the figures below leave them out.', $accepted)
+                : \sprintf('%d project suggestions accepted.', $accepted));
         }
 
         $plan = $this->import->plan($data);
         $this->printProblems($io, $plan);
 
-        $dryRun = (bool) $input->getOption('dry-run');
         $result = $dryRun ? $this->import->preview($data) : $this->import->import($data);
         $this->printResult($io, $result, $plan);
 

@@ -41,6 +41,7 @@ final class Version20261106000000 extends AbstractMigration
             $table->addColumn('user_id', 'integer', ['notnull' => false]);
             $table->addColumn('customer_id', 'integer', ['notnull' => false]);
             $table->addColumn('project_id', 'integer', ['notnull' => false]);
+            $table->addColumn('with_project', 'boolean', ['notnull' => true, 'default' => false]);
             $table->addColumn('updated_at', 'datetime_immutable', ['notnull' => true]);
             $table->setPrimaryKey(['id']);
             $table->addUniqueIndex(['kind', 'forecast_key'], 'UNIQ_FORECAST_IMPORT_MAPPING');
@@ -56,13 +57,16 @@ final class Version20261106000000 extends AbstractMigration
             $table = $schema->createTable('kimai2_forecast_import_planning');
             $table->addColumn('id', 'integer', ['autoincrement' => true, 'notnull' => true]);
             $table->addColumn('forecast_assignment_id', 'bigint', ['notnull' => true]);
-            $table->addColumn('planned_activity_id', 'integer', ['notnull' => true]);
+            $table->addColumn('planned_activity_id', 'integer', ['notnull' => false]);
+            $table->addColumn('part_begin', 'date_immutable', ['notnull' => true]);
+            $table->addColumn('part_end', 'date_immutable', ['notnull' => true]);
             $table->addColumn('fingerprint', 'string', ['length' => 40, 'notnull' => true]);
             $table->addColumn('imported_at', 'datetime_immutable', ['notnull' => true]);
             $table->setPrimaryKey(['id']);
             $table->addIndex(['forecast_assignment_id'], 'IDX_FORECAST_IMPORT_ASSIGNMENT');
             $table->addUniqueIndex(['planned_activity_id'], 'UNIQ_FORECAST_IMPORT_ACTIVITY');
-            $table->addForeignKeyConstraint('kimai2_planned_activities', ['planned_activity_id'], ['id'], ['onDelete' => 'CASCADE'], 'FK_FORECAST_IMPORT_ACTIVITY');
+            // a planning deleted in Kimai keeps its link, so the import remembers it and does not bring it back
+            $table->addForeignKeyConstraint('kimai2_planned_activities', ['planned_activity_id'], ['id'], ['onDelete' => 'SET NULL'], 'FK_FORECAST_IMPORT_ACTIVITY');
         }
     }
 

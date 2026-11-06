@@ -83,7 +83,8 @@ final class ForecastImportController extends AbstractController
             }
         }
 
-        $read = $request->getSession()->get(self::SESSION_READ);
+        // shown once, right after reading; the counts below stay from the stored data
+        $read = $request->getSession()->remove(self::SESSION_READ);
 
         return $this->render('@ForecastImport/index.html.twig', [
             'form' => $form->createView(),
@@ -161,6 +162,8 @@ final class ForecastImportController extends AbstractController
     {
         $data = $this->import->data();
         if ($data === null || !$this->isCsrfTokenValid('forecast_import_accept', (string) $request->request->get('_token'))) {
+            $this->flashError('forecast_import.expired');
+
             return $this->redirectToRoute('forecast_import_projects');
         }
 
@@ -214,6 +217,8 @@ final class ForecastImportController extends AbstractController
         if ($this->isCsrfTokenValid('forecast_import_reset', (string) $request->request->get('_token'))) {
             $this->mappings->forget($kind, $id);
             $this->flashSuccess('action.update.success');
+        } else {
+            $this->flashError('forecast_import.expired');
         }
 
         return $this->redirectToRoute($kind === Mapping::PROJECT ? 'forecast_import_projects' : 'forecast_import_people');
@@ -227,7 +232,11 @@ final class ForecastImportController extends AbstractController
             return $this->redirectToRoute('forecast_import');
         }
 
-        $tags = array_values(array_unique(array_merge($data->projectTags(), $this->mappings->tentativeTags())));
+        // a tag is stored as a mapping key of at most 150 characters; Forecast tags that long are not offered
+        $tags = array_values(array_filter(
+            array_unique(array_merge($data->projectTags(), $this->mappings->tentativeTags())),
+            static fn (string $tag): bool => mb_strlen($tag) <= 150
+        ));
         $form = $this->createForm(TentativeTagsForm::class, ['tags' => $this->mappings->tentativeTags()], [
             'tags' => $tags,
             'action' => $this->generateUrl('forecast_import_tentative'),
@@ -276,6 +285,14 @@ final class ForecastImportController extends AbstractController
     {
         $data = $this->import->data();
         if ($data === null || !$this->isCsrfTokenValid('forecast_import_run', (string) $request->request->get('_token'))) {
+            $this->flashError('forecast_import.expired');
+
+            return $this->redirectToRoute('forecast_import_preview');
+        }
+        // the import must use the read the preview showed, not one someone made since
+        if ($request->request->get('read') !== $data->fetchedAt->format('c')) {
+            $this->flashWarning('forecast_import.read_since_preview');
+
             return $this->redirectToRoute('forecast_import_preview');
         }
 
@@ -300,7 +317,9 @@ final class ForecastImportController extends AbstractController
     #[Route(path: '/remove', name: 'forecast_import_remove', methods: ['POST'])]
     public function removeAll(Request $request): Response
     {
-        if ($this->isCsrfTokenValid('forecast_import_remove', (string) $request->request->get('_token')) && $request->request->getBoolean('confirm')) {
+        if (!$this->isCsrfTokenValid('forecast_import_remove', (string) $request->request->get('_token'))) {
+            $this->flashError('forecast_import.expired');
+        } elseif ($request->request->getBoolean('confirm')) {
             $count = $this->import->removeAll();
             $this->addFlash('success', $this->translator->trans('forecast_import.removed', ['%count%' => $count], 'flashmessages'));
         }

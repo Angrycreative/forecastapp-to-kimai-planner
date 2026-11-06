@@ -152,9 +152,10 @@ class MappingService implements ResetInterface
      * Saves the best suggestion of every unmapped project whose suggestion is at least confident.
      *
      * @param list<int>|null $only Forecast project ids to accept, or null for all confident ones
-     * @return int how many were accepted
+     * @param bool $save false only counts what would be accepted
+     * @return int how many were (or would be) accepted
      */
-    public function acceptSuggestions(ForecastData $data, ?array $only = null, float $minimum = ProjectSuggester::CONFIDENT_SCORE): int
+    public function acceptSuggestions(ForecastData $data, ?array $only = null, float $minimum = ProjectSuggester::CONFIDENT_SCORE, bool $save = true): int
     {
         $mappings = [];
         foreach ($this->projectRows($data) as $row) {
@@ -173,7 +174,9 @@ class MappingService implements ResetInterface
             $mapping->apply(Target::work($project->getCustomer(), $project));
             $mappings[] = $mapping;
         }
-        $this->repository->save(...$mappings);
+        if ($save) {
+            $this->repository->save(...$mappings);
+        }
 
         return \count($mappings);
     }

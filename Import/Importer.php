@@ -19,9 +19,10 @@ use KimaiPlugin\PlannerBundle\Entity\PlannedActivity;
 /**
  * Writes a plan into the Weekly Planner. Safe to run again:
  *
- * - an assignment imported before with the same result is left alone, including any edits made to it in Kimai since;
- * - a changed assignment has its earlier plannings replaced;
- * - an assignment deleted in Forecast, or skipped since, loses its plannings;
+ * - an assignment imported before, unchanged in Forecast and in its mapping, whose days in the range are already
+ *   covered, is left alone: edits made to its plannings in Kimai stay, and so does a planning deleted in Kimai;
+ * - a changed assignment has its plannings in the range replaced, including halves someone split off in the planner;
+ * - an assignment deleted in Forecast, or skipped since, loses its plannings in the range;
  * - an assignment that could not be resolved this time (unmapped) keeps whatever an earlier run created.
  *
  * Only the import range is touched: plannings before its start or after its end stay as they are, and one reaching
@@ -41,43 +42,40 @@ class Importer
         $result = new ImportResult($dryRun);
         $run = function () use ($plan, $result, $dryRun): void {
             $links = $this->links->findAllByAssignment();
+            $unlinked = $this->links->findUnlinkedParts();
             $unresolved = array_flip($plan->unresolvedIds());
 
             foreach ($plan->assignments() as $id => $assignment) {
-                $existing = $links[$id] ?? [];
-                $inRange = $this->inRange($existing, $plan);
-                if ($inRange !== [] && $this->isUnchanged($inRange, $assignment->fingerprint)) {
+                $relevant = $this->inRange($links[$id] ?? [], $plan);
+                $strays = $this->activitiesInRange($unlinked[$id] ?? [], $plan);
+                // a split made in Kimai since (an unlinked half) is an edit like any other: it stays while Forecast does not change
+                if ($relevant !== [] && $this->isUnchanged($relevant, $assignment)) {
                     ++$result->unchanged;
                     $result->statuses[$id] = ImportResult::UNCHANGED;
 
                     continue;
                 }
-                $inRange === [] ? ++$result->created : ++$result->updated;
-                $result->statuses[$id] = $inRange === [] ? ImportResult::CREATED : ImportResult::UPDATED;
-                $this->clear($existing, $plan, $result, $dryRun);
+
+                $new = $relevant === [] && $strays === [];
+                $new ? ++$result->created : ++$result->updated;
+                $result->statuses[$id] = $new ? ImportResult::CREATED : ImportResult::UPDATED;
+                $this->clear($links[$id] ?? [], $unlinked[$id] ?? [], $plan, $result, $dryRun);
                 $this->create($assignment, $result, $dryRun);
             }
 
-            foreach ($links as $id => $existing) {
+            foreach (array_unique(array_merge(array_keys($links), array_keys($unlinked))) as $id) {
                 if (isset($plan->assignments()[$id]) || isset($unresolved[$id])) {
                     continue;
                 }
-                $before = $result->planningsRemoved + $result->planningsShortened;
-                foreach ($this->inRange($existing, $plan) as $link) {
-                    $activity = $link->getPlannedActivity();
-                    $result->removedPlannings[] = [
-                        'assignment' => $id,
-                        'user' => (string) $activity->getUser()?->getDisplayName(),
-                        'label' => $activity->getProject() !== null
-                            ? $activity->getCustomer()?->getName() . ' / ' . $activity->getProject()->getName()
-                            : (string) ($activity->getCustomer()?->getName() ?? ''),
-                        'begin' => $activity->getBegin(),
-                        'end' => $activity->getEnd(),
-                        'hoursPerDay' => $activity->getHoursPerDay(),
-                        'timeOff' => $this->capabilities->supportsTimeOff() && $activity->isTimeOff(),
-                    ];
+                $activities = array_merge(
+                    array_filter(array_map(static fn (ImportedPlanning $link): ?PlannedActivity => $link->getPlannedActivity(), $links[$id] ?? [])),
+                    $unlinked[$id] ?? []
+                );
+                foreach ($this->activitiesInRange($activities, $plan) as $activity) {
+                    $result->removedPlannings[] = $this->describe($id, $activity, $plan);
                 }
-                $this->clear($existing, $plan, $result, $dryRun);
+                $before = $result->planningsRemoved + $result->planningsShortened;
+                $this->clear($links[$id] ?? [], $unlinked[$id] ?? [], $plan, $result, $dryRun);
                 if ($result->planningsRemoved + $result->planningsShortened > $before) {
                     ++$result->removed;
                     $result->statuses[$id] = ImportResult::REMOVED;
@@ -99,7 +97,8 @@ class Importer
     }
 
     /**
-     * Removes every imported planning, for starting over. Plannings made in Kimai are not touched.
+     * Removes every imported planning, including halves split off in the planner, for starting over. Plannings made
+     * in Kimai are not touched, and neither are the mapping decisions.
      */
     public function removeAll(): int
     {
@@ -107,8 +106,16 @@ class Importer
         $this->entityManager->wrapInTransaction(function () use (&$count): void {
             foreach ($this->links->findAllByAssignment() as $existing) {
                 foreach ($existing as $link) {
+                    if ($link->getPlannedActivity() !== null) {
+                        $this->entityManager->remove($link->getPlannedActivity());
+                        ++$count;
+                    }
                     $this->entityManager->remove($link);
-                    $this->entityManager->remove($link->getPlannedActivity());
+                }
+            }
+            foreach ($this->links->findUnlinkedParts() as $activities) {
+                foreach ($activities as $activity) {
+                    $this->entityManager->remove($activity);
                     ++$count;
                 }
             }
@@ -119,31 +126,49 @@ class Importer
     }
 
     /**
-     * The links whose planning lies at least partly within the import range; older ones are history and stay.
+     * Links that lie at least partly within the import range, by the dates the import gave them; older ones are
+     * history and play no part.
      *
-     * @param list<ImportedPlanning> $existing
+     * @param list<ImportedPlanning> $links
      * @return list<ImportedPlanning>
      */
-    private function inRange(array $existing, Plan $plan): array
+    private function inRange(array $links, Plan $plan): array
     {
-        $rangeBegin = $plan->begin->format('Y-m-d');
-        $rangeEnd = $plan->end->format('Y-m-d');
-
-        return array_values(array_filter($existing, static function (ImportedPlanning $link) use ($rangeBegin, $rangeEnd): bool {
-            $activity = $link->getPlannedActivity();
-
-            return $activity->getEnd()?->format('Y-m-d') >= $rangeBegin && $activity->getBegin()?->format('Y-m-d') <= $rangeEnd;
-        }));
+        return array_values(array_filter($links, static fn (ImportedPlanning $link): bool => $link->getPartEnd() >= $plan->begin && $link->getPartBegin() <= $plan->end));
     }
 
     /**
-     * @param list<ImportedPlanning> $existing
+     * @param list<PlannedActivity> $activities
+     * @return list<PlannedActivity>
      */
-    private function isUnchanged(array $existing, string $fingerprint): bool
+    private function activitiesInRange(array $activities, Plan $plan): array
     {
-        foreach ($existing as $link) {
-            if ($link->getFingerprint() !== $fingerprint) {
+        return array_values(array_filter($activities, static fn (PlannedActivity $activity): bool => $activity->getEnd() !== null && $activity->getBegin() !== null
+            && $activity->getEnd()->format('Y-m-d') >= $plan->begin->format('Y-m-d') && $activity->getBegin()->format('Y-m-d') <= $plan->end->format('Y-m-d')));
+    }
+
+    /**
+     * Unchanged when the assignment and its mapping are as they were, and every day it needs in the range was planned
+     * by an earlier import, whatever has happened to those plannings in Kimai since.
+     *
+     * @param list<ImportedPlanning> $relevant
+     */
+    private function isUnchanged(array $relevant, PlannedAssignment $assignment): bool
+    {
+        $covered = [];
+        foreach ($relevant as $link) {
+            if ($link->getFingerprint() !== $assignment->fingerprint) {
                 return false;
+            }
+            for ($day = $link->getPartBegin(); $day <= $link->getPartEnd(); $day = $day->modify('+1 day')) {
+                $covered[$day->format('Y-m-d')] = true;
+            }
+        }
+        foreach ($assignment->parts as $part) {
+            for ($day = $part->begin; $day <= $part->end; $day = $day->modify('+1 day')) {
+                if (!isset($covered[$day->format('Y-m-d')])) {
+                    return false;
+                }
             }
         }
 
@@ -151,52 +176,109 @@ class Importer
     }
 
     /**
-     * Takes earlier plannings of an assignment out of the import range.
+     * Takes earlier plannings of an assignment out of the import range: those the import linked, links whose planning
+     * was deleted in Kimai, and unlinked halves split off in the planner.
      *
-     * @param list<ImportedPlanning> $existing
+     * @param list<ImportedPlanning> $links
+     * @param list<PlannedActivity> $unlinked
      */
-    private function clear(array $existing, Plan $plan, ImportResult $result, bool $dryRun): void
+    private function clear(array $links, array $unlinked, Plan $plan, ImportResult $result, bool $dryRun): void
     {
-        $rangeBegin = $plan->begin->format('Y-m-d');
-        $rangeEnd = $plan->end->format('Y-m-d');
-
-        foreach ($existing as $link) {
+        foreach ($links as $link) {
             $activity = $link->getPlannedActivity();
-            $begin = $activity->getBegin()?->format('Y-m-d');
-            $end = $activity->getEnd()?->format('Y-m-d');
-            if ($begin === null || $end === null || $end < $rangeBegin || $begin > $rangeEnd) {
-                continue;
-            }
-
-            $keepBefore = $begin < $rangeBegin;
-            $keepAfter = $end > $rangeEnd;
-            if (!$keepBefore && !$keepAfter) {
-                ++$result->planningsRemoved;
-                if (!$dryRun) {
+            if ($activity === null) {
+                // deleted in Kimai: forget the parts of it that lie in the range
+                $outside = $this->outside($link->getPartBegin(), $link->getPartEnd(), $plan);
+                if ($dryRun || $outside === null) {
+                    continue;
+                }
+                if ($outside === []) {
                     $this->entityManager->remove($link);
-                    $this->entityManager->remove($activity);
+                } else {
+                    $link->moveTo($outside[0][0], $outside[0][1]);
+                    $this->entityManager->persist($link);
                 }
 
                 continue;
             }
-
-            ++$result->planningsShortened;
-            if ($dryRun) {
-                continue;
-            }
-            if ($keepBefore && $keepAfter) {
-                $after = $this->copy($activity);
-                $after->setBegin(new \DateTime($plan->end->modify('+1 day')->format('Y-m-d')));
-                $this->entityManager->persist($after);
-                $this->entityManager->persist(new ImportedPlanning($link->getForecastAssignmentId(), $after, $link->getFingerprint()));
-            }
-            if ($keepBefore) {
-                $activity->setEnd(new \DateTime($plan->begin->modify('-1 day')->format('Y-m-d')));
-            } else {
-                $activity->setBegin(new \DateTime($plan->end->modify('+1 day')->format('Y-m-d')));
-            }
-            $this->entityManager->persist($activity);
+            $this->cut($activity, $link, $plan, $result, $dryRun);
         }
+        foreach ($unlinked as $activity) {
+            $this->cut($activity, null, $plan, $result, $dryRun);
+        }
+    }
+
+    /**
+     * Removes the part of a planning within the import range, or the whole planning when nothing is left outside it.
+     */
+    private function cut(PlannedActivity $activity, ?ImportedPlanning $link, Plan $plan, ImportResult $result, bool $dryRun): void
+    {
+        if ($activity->getBegin() === null || $activity->getEnd() === null) {
+            return;
+        }
+        $outside = $this->outside(
+            new \DateTimeImmutable($activity->getBegin()->format('Y-m-d')),
+            new \DateTimeImmutable($activity->getEnd()->format('Y-m-d')),
+            $plan
+        );
+        if ($outside === null) {
+            return;
+        }
+        if ($outside === []) {
+            ++$result->planningsRemoved;
+            if (!$dryRun) {
+                if ($link !== null) {
+                    $this->entityManager->remove($link);
+                }
+                $this->entityManager->remove($activity);
+            }
+
+            return;
+        }
+
+        ++$result->planningsShortened;
+        if ($dryRun) {
+            return;
+        }
+        [$first] = $outside;
+        if (isset($outside[1])) {
+            $after = $this->copy($activity);
+            $after->setBegin(new \DateTime($outside[1][0]->format('Y-m-d')));
+            $after->setEnd(new \DateTime($outside[1][1]->format('Y-m-d')));
+            $this->entityManager->persist($after);
+            if ($link !== null) {
+                $this->entityManager->persist(new ImportedPlanning($link->getForecastAssignmentId(), $after, $outside[1][0], $outside[1][1], $link->getFingerprint()));
+            }
+        }
+        $activity->setBegin(new \DateTime($first[0]->format('Y-m-d')));
+        $activity->setEnd(new \DateTime($first[1]->format('Y-m-d')));
+        $this->entityManager->persist($activity);
+        if ($link !== null) {
+            $link->moveTo($first[0], $first[1]);
+            $this->entityManager->persist($link);
+        }
+    }
+
+    /**
+     * What remains of a date range once the import range is taken out of it: null when they do not overlap, an empty
+     * list when nothing remains, otherwise the part before and/or the part after the import range.
+     *
+     * @return list<array{0: \DateTimeImmutable, 1: \DateTimeImmutable}>|null
+     */
+    private function outside(\DateTimeImmutable $begin, \DateTimeImmutable $end, Plan $plan): ?array
+    {
+        if ($end < $plan->begin || $begin > $plan->end) {
+            return null;
+        }
+        $remaining = [];
+        if ($begin < $plan->begin) {
+            $remaining[] = [$begin, $plan->begin->modify('-1 day')];
+        }
+        if ($end > $plan->end) {
+            $remaining[] = [$plan->end->modify('+1 day'), $end];
+        }
+
+        return $remaining;
     }
 
     private function create(PlannedAssignment $assignment, ImportResult $result, bool $dryRun): void
@@ -225,16 +307,38 @@ class Importer
             $activity->setRecurrenceGroup($assignment->recurrenceGroup());
 
             $this->entityManager->persist($activity);
-            $this->entityManager->persist(new ImportedPlanning($assignment->forecastId, $activity, $assignment->fingerprint));
+            $this->entityManager->persist(new ImportedPlanning($assignment->forecastId, $activity, $part->begin, $part->end, $assignment->fingerprint));
         }
+    }
+
+    /**
+     * A planning as the preview lists it when it is removed, with only the dates the import takes away.
+     *
+     * @return array{assignment: int, userId: ?int, user: string, label: string, begin: \DateTimeInterface, end: \DateTimeInterface, hoursPerDay: ?float, timeOff: bool}
+     */
+    private function describe(int $id, PlannedActivity $activity, Plan $plan): array
+    {
+        $begin = max(new \DateTimeImmutable((string) $activity->getBegin()?->format('Y-m-d')), $plan->begin);
+        $end = min(new \DateTimeImmutable((string) $activity->getEnd()?->format('Y-m-d')), $plan->end);
+
+        return [
+            'assignment' => $id,
+            'userId' => $activity->getUser()?->getId(),
+            'user' => (string) $activity->getUser()?->getDisplayName(),
+            'label' => $activity->getProject() !== null
+                ? $activity->getCustomer()?->getName() . ' / ' . $activity->getProject()->getName()
+                : (string) ($activity->getCustomer()?->getName() ?? ''),
+            'begin' => $begin,
+            'end' => $end,
+            'hoursPerDay' => $activity->getHoursPerDay(),
+            'timeOff' => $this->capabilities->supportsTimeOff() && $activity->isTimeOff(),
+        ];
     }
 
     private function copy(PlannedActivity $activity): PlannedActivity
     {
         $copy = new PlannedActivity();
         $copy->setUser($activity->getUser());
-        $copy->setBegin($activity->getBegin());
-        $copy->setEnd($activity->getEnd());
         $copy->setCustomer($activity->getCustomer());
         $copy->setProject($activity->getProject());
         $copy->setHoursPerDay($activity->getHoursPerDay());
