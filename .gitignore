@@ -4,3 +4,4 @@
 .env.*
 /tools/*/vendor/
 /tools/*/composer.lock
+/composer.lock
