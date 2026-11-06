@@ -630,6 +630,34 @@
                 <source>forecast_import.action_help_project</source>
                 <target>Not importing a project leaves out all of its Forecast planning, and the next import removes what an earlier one created for it.</target>
             </trans-unit>
+            <trans-unit id="forecast_import.col_person">
+                <source>forecast_import.col_person</source>
+                <target>Person in Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.col_project">
+                <source>forecast_import.col_project</source>
+                <target>Project in Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.col_planned">
+                <source>forecast_import.col_planned</source>
+                <target>Planned in Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.col_goes_to">
+                <source>forecast_import.col_goes_to</source>
+                <target>Goes to in Kimai</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.planned_hours">
+                <source>forecast_import.planned_hours</source>
+                <target>≈ %hours% h</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.planned_days">
+                <source>forecast_import.planned_days</source>
+                <target>{1} 1 whole day|]1,Inf[ %count% whole days</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.bookings">
+                <source>forecast_import.bookings</source>
+                <target>{1} 1 booking|]1,Inf[ %count% bookings</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>
