@@ -35,7 +35,7 @@ final class ImportResult
     /**
      * Earlier imported plannings that are removed or shortened, for assignments no longer in the plan.
      *
-     * @var list<array{assignment: int, user: string, label: string, begin: \DateTimeInterface, end: \DateTimeInterface, hoursPerDay: ?float, timeOff: bool}>
+     * @var list<array{assignment: int, userId: ?int, user: string, label: string, begin: \DateTimeInterface, end: \DateTimeInterface, hoursPerDay: ?float, timeOff: bool}>
      */
     public array $removedPlannings = [];
 

@@ -90,7 +90,8 @@ final class PlanBuilder
             $comment = trim((string) ($assignment['notes'] ?? ''));
             $comment = $comment === '' ? null : $comment;
 
-            $ranges = (bool) ($assignment['active_on_days_off'] ?? false) ? [[$begin, $end]] : $this->workingRuns($user, $begin, $end);
+            $activeOnDaysOff = (bool) ($assignment['active_on_days_off'] ?? false);
+            $ranges = $activeOnDaysOff ? [[$begin, $end]] : $this->workingRuns($data, $assignment, $user, $begin, $end, $plan);
 
             $parts = [];
             foreach ($ranges as [$partBegin, $partEnd]) {
@@ -107,7 +108,21 @@ final class PlanBuilder
                 );
             }
 
-            $plan->add(new PlannedAssignment($id, $parts));
+            $fingerprint = sha1((string) json_encode([
+                (string) $assignment['start_date'],
+                (string) $assignment['end_date'],
+                $assignment['allocation'],
+                $comment,
+                $activeOnDaysOff,
+                $user->getId(),
+                $timeOff ? null : $target->customer?->getId(),
+                $timeOff ? null : $target->project?->getId(),
+                $timeOff,
+                $tentative,
+                $hours,
+            ]));
+
+            $plan->add(new PlannedAssignment($id, $parts, $fingerprint));
         }
 
         return $plan;
@@ -166,15 +181,29 @@ final class PlanBuilder
     }
 
     /**
+     * The runs of days the user works within the dates. Someone without a work contract in Kimai works no day at all,
+     * which would turn a Monday to Friday booking over four weeks into one planning straight through the weekends;
+     * for them Forecast's own working days for the person are used instead, and the preview says so.
+     *
+     * @param array<string, mixed> $assignment
      * @return list<array{0: \DateTimeImmutable, 1: \DateTimeImmutable}>
      */
-    private function workingRuns(User $user, \DateTimeImmutable $begin, \DateTimeImmutable $end): array
+    private function workingRuns(ForecastData $data, array $assignment, User $user, \DateTimeImmutable $begin, \DateTimeImmutable $end, Plan $plan): array
     {
+        $isWorkDay = fn (\DateTimeImmutable $day): bool => $this->calendar->isWorkDay($user, $day);
+        if (!$this->hasWorkingWeek($user, $begin)) {
+            $forecastDays = $this->forecastWorkingDays($data, $assignment);
+            if ($forecastDays !== []) {
+                $plan->problem(Plan::NO_WORK_CONTRACT, $user->getDisplayName());
+                $isWorkDay = static fn (\DateTimeImmutable $day): bool => \in_array(strtolower($day->format('l')), $forecastDays, true);
+            }
+        }
+
         $runs = [];
         $runBegin = null;
         $runEnd = null;
         for ($day = $begin; $day <= $end; $day = $day->modify('+1 day')) {
-            if ($this->calendar->isWorkDay($user, $day)) {
+            if ($isWorkDay($day)) {
                 $runBegin ??= $day;
                 $runEnd = $day;
 
@@ -190,6 +219,31 @@ final class PlanBuilder
         }
 
         return $runs === [] ? [[$begin, $end]] : $runs;
+    }
+
+    /**
+     * Whether the user works at least one day in the week from this date, by their Kimai work contract.
+     */
+    private function hasWorkingWeek(User $user, \DateTimeImmutable $from): bool
+    {
+        for ($i = 0; $i < 7; ++$i) {
+            if ($this->calendar->isWorkDay($user, $from->modify('+' . $i . ' days'))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<string, mixed> $assignment
+     * @return list<string> lower-case English day names the Forecast person works
+     */
+    private function forecastWorkingDays(ForecastData $data, array $assignment): array
+    {
+        $person = $assignment['person_id'] !== null ? ($data->people[(int) $assignment['person_id']] ?? null) : null;
+
+        return array_values(array_map('strval', array_keys(array_filter((array) ($person['working_days'] ?? [])))));
     }
 
     private function projectLabel(ForecastData $data, int $projectId): string

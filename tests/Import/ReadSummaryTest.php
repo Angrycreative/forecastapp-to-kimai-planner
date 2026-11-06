@@ -34,8 +34,8 @@ final class ReadSummaryTest extends TestCase
     public function testADifferentDateRangeIsNotMistakenForChanges(): void
     {
         // assignment 3 only falls in the earlier, longer range; assignment 5 only in the new, earlier start
-        $previous = self::data('2026-11-09', '2027-06-30', [1 => 'a', 3 => 'a'], [3 => '2027-03-01']);
-        $current = self::data('2026-11-02', '2026-12-31', [1 => 'a', 5 => 'a'], [5 => '2026-11-03']);
+        $previous = self::data('2026-11-09', '2027-06-30', [1 => 'a', 3 => 'a', 6 => 'a'], [3 => '2027-03-01', 6 => '2027-03-02']);
+        $current = self::data('2026-11-02', '2026-12-31', [1 => 'a', 5 => 'a', 6 => 'b'], [5 => '2026-11-03', 6 => '2027-03-02']);
 
         $summary = ReadSummary::compare($current, $previous);
 

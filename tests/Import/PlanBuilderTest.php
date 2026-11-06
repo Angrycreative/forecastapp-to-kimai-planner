@@ -88,7 +88,6 @@ final class PlanBuilderTest extends TestCase
 
         $assignment = $plan->assignments()[1];
         self::assertCount(1, $assignment->parts);
-        self::assertNull($assignment->recurrenceGroup());
     }
 
     public function testKeepsAWeekendOnlyAssignmentAsItIs(): void
@@ -198,14 +197,46 @@ final class PlanBuilderTest extends TestCase
         self::assertNull($plan->assignments()[2]->parts[0]->comment);
     }
 
-    public function testFingerprintChangesWithTheResultOnly(): void
+    public function testFingerprintIgnoresTheImportRangeAndForecastsEditTime(): void
     {
-        $first = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 3600)])->assignments()[1]->fingerprint;
-        $same = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 3600, ['updated_at' => '2027-01-01T00:00:00Z'])])->assignments()[1]->fingerprint;
-        $other = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 7200)])->assignments()[1]->fingerprint;
+        // an assignment already running: tomorrow's run starts a day later, but the assignment has not changed
+        $today = $this->build([$this->assignment(1, '2026-11-02', '2026-11-20', 3600)])->assignments()[1];
+        $tomorrow = $this->build([$this->assignment(1, '2026-11-02', '2026-11-20', 3600, ['updated_at' => '2027-01-01T00:00:00Z'])], rangeBegin: '2026-11-10')->assignments()[1];
 
-        self::assertSame($first, $same);
-        self::assertNotSame($first, $other);
+        self::assertSame($today->fingerprint, $tomorrow->fingerprint);
+        self::assertNotEquals($today->parts[0]->begin, $tomorrow->parts[0]->begin);
+    }
+
+    public function testFingerprintChangesWithTheAssignmentOrItsMapping(): void
+    {
+        $base = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 3600)])->assignments()[1]->fingerprint;
+        $otherHours = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 7200)])->assignments()[1]->fingerprint;
+        $tentative = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 3600)], tags: ['pitch'], tentativeTags: ['pitch'])->assignments()[1]->fingerprint;
+
+        self::assertNotSame($base, $otherHours);
+        self::assertNotSame($base, $tentative);
+    }
+
+    public function testEveryAssignmentGetsItsOwnRecurrenceGroup(): void
+    {
+        $assignment = $this->build([$this->assignment(42, '2026-11-09', '2026-11-09', 3600)])->assignments()[42];
+
+        self::assertSame('forecast-42', $assignment->recurrenceGroup());
+        self::assertSame(42, \KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment::idFromGroup('forecast-42'));
+        self::assertNull(\KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment::idFromGroup('a1b2c3'));
+    }
+
+    public function testUsesForecastsWorkingDaysForSomeoneWithoutAWorkContract(): void
+    {
+        // Monday 9 to Friday 20 November: two weeks, not one planning through the weekend
+        $plan = $this->build([$this->assignment(1, '2026-11-09', '2026-11-20', 3600)], contract: false);
+
+        self::assertSame(
+            [['2026-11-09', '2026-11-13'], ['2026-11-16', '2026-11-20']],
+            array_map(static fn ($part): array => [$part->begin->format('Y-m-d'), $part->end->format('Y-m-d')], $plan->assignments()[1]->parts)
+        );
+        self::assertArrayHasKey(Plan::NO_WORK_CONTRACT, $plan->problems());
+        self::assertFalse($plan->hasBlockingProblems());
     }
 
     public function testNotesAnInactiveUser(): void
@@ -231,8 +262,10 @@ final class PlanBuilderTest extends TestCase
         bool $tentative = true,
         array $holidays = [],
         ?MappingSet $mappings = null,
+        string $rangeBegin = '2026-11-09',
+        bool $contract = true,
     ): Plan {
-        $data = ForecastData::fromForecast('123', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2027-11-08'), new \DateTimeImmutable(), [
+        $data = ForecastData::fromForecast('123', new \DateTimeImmutable($rangeBegin), new \DateTimeImmutable('2027-11-08'), new \DateTimeImmutable(), [
             'people' => [
                 ['id' => self::PERSON, 'first_name' => 'Alex', 'last_name' => 'Doe', 'email' => 'alex@example.com', 'archived' => false, 'weekly_capacity' => 36 * 3600, 'working_days' => ['monday' => true, 'tuesday' => true, 'wednesday' => true, 'thursday' => true, 'friday' => true, 'saturday' => false, 'sunday' => false]],
                 ['id' => 2, 'first_name' => 'Sam', 'last_name' => 'Doe', 'email' => 'sam@example.com', 'archived' => false],
@@ -254,15 +287,15 @@ final class PlanBuilderTest extends TestCase
             $tentativeTags,
         );
 
-        $calendar = new class($holidays) implements WorkDayCalendar {
+        $calendar = new class($holidays, $contract) implements WorkDayCalendar {
             /** @param list<string> $holidays */
-            public function __construct(private readonly array $holidays)
+            public function __construct(private readonly array $holidays, private readonly bool $contract)
             {
             }
 
             public function isWorkDay(User $user, \DateTimeImmutable $day): bool
             {
-                return (int) $day->format('N') <= 5 && !\in_array($day->format('Y-m-d'), $this->holidays, true);
+                return $this->contract && (int) $day->format('N') <= 5 && !\in_array($day->format('Y-m-d'), $this->holidays, true);
             }
         };
 

@@ -32,22 +32,4 @@ final class PlannedPart
         public readonly ?string $comment,
     ) {
     }
-
-    /**
-     * @return array<string, mixed> what decides whether an earlier import of the same assignment is still right
-     */
-    public function fingerprintData(): array
-    {
-        return [
-            $this->user->getId(),
-            $this->customer?->getId(),
-            $this->project?->getId(),
-            $this->begin->format('Y-m-d'),
-            $this->end->format('Y-m-d'),
-            $this->hoursPerDay,
-            $this->timeOff,
-            $this->tentative,
-            $this->comment,
-        ];
-    }
 }

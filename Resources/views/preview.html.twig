@@ -83,6 +83,7 @@
                     <p class="text-secondary small m-0" data-forecast-busy-note hidden>{{ 'forecast_import.importing'|trans }}</p>
                 </div>
                 <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_run') }}">
+                <input type="hidden" name="read" value="{{ data.fetchedAt.format('c') }}">
                 <button type="submit" class="btn btn-primary btn-lg" {{ not capabilities.plannerInstalled or not result.hasChanges ? 'disabled' }}>{{ 'forecast_import.run'|trans }}</button>
             </div>
         </form>

@@ -67,11 +67,37 @@ final class ForecastData
                         throw new ForecastApiException(\sprintf('Forecast\'s %s no longer carry the field "%s", which the import needs. Its API may have changed; nothing was imported.', $name, $field));
                     }
                 }
+                if ($name === 'assignments') {
+                    self::checkAssignment($record);
+                }
                 $indexed[$name][(int) $record['id']] = $record;
             }
         }
 
         return new self($accountId, $begin, $end, $fetchedAt, $indexed['people'], $indexed['placeholders'], $indexed['clients'], $indexed['projects'], $indexed['assignments']);
+    }
+
+    /**
+     * Presence alone is not enough for the fields that decide dates and hours: an empty date would read as "today".
+     *
+     * @param array<string, mixed> $assignment
+     */
+    private static function checkAssignment(array $assignment): void
+    {
+        foreach (['start_date', 'end_date'] as $field) {
+            if (!\is_string($assignment[$field]) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $assignment[$field]) !== 1) {
+                throw new ForecastApiException(\sprintf('Forecast sent an assignment with "%s" that is not a date. Its API may have changed; nothing was imported.', $field));
+            }
+        }
+        if ($assignment['end_date'] < $assignment['start_date']) {
+            throw new ForecastApiException('Forecast sent an assignment that ends before it starts. Nothing was imported.');
+        }
+        if ($assignment['allocation'] !== null && !\is_int($assignment['allocation'])) {
+            throw new ForecastApiException('Forecast sent an assignment whose "allocation" is not a number of seconds. Its API may have changed; nothing was imported.');
+        }
+        if ($assignment['person_id'] === null && $assignment['placeholder_id'] === null) {
+            throw new ForecastApiException('Forecast sent an assignment for nobody. Its API may have changed; nothing was imported.');
+        }
     }
 
     /**

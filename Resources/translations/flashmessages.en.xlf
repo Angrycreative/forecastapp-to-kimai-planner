@@ -22,6 +22,14 @@
                 <source>forecast_import.removed</source>
                 <target>%count% imported plannings removed.</target>
             </trans-unit>
+            <trans-unit id="forecast_import.expired">
+                <source>forecast_import.expired</source>
+                <target>The page had expired, so nothing was done. Please try again.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.read_since_preview">
+                <source>forecast_import.read_since_preview</source>
+                <target>Forecast was read again after this preview was shown, so nothing was imported. Check the preview below and import again.</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

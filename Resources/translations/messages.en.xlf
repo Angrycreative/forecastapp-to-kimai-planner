@@ -578,6 +578,10 @@
                 <source>forecast_import.range_changed</source>
                 <target>The dates differ from the previous read, so only the days both reads cover are compared.</target>
             </trans-unit>
+            <trans-unit id="forecast_import.problem.no_work_contract">
+                <source>forecast_import.problem.no_work_contract</source>
+                <target>No working days in the Kimai work contract, so Forecast's working days were used</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

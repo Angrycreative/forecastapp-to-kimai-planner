@@ -11,10 +11,17 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 - **Suggests where each project goes.** Project names rarely survive a move unchanged ("Acme / Acme Marketing" in Forecast, "Acme Ltd / Acme Marketing Services" in Kimai), so the plugin scores how alike the customer and project names are and suggests the closest Kimai project. Strong suggestions are ticked for you to accept in one go; you confirm or change the rest. A Forecast project can also go to a customer without a project.
 - **Brings time off across as time off.** Forecast's "Time Off" project becomes planner time off, whole days included.
 - **Lets you say what "tentative" means.** Forecast has no tentative flag, so you choose project tags (such as "not signed") whose assignments are imported as tentative planning.
-- **Respects working days.** Forecast books working days only; a planning in Kimai covers every day between its dates. Assignments are cut into runs of each person's working days, from their Kimai work contract and, where the planner knows them, public holidays. The parts of one assignment form one series in the planner.
+- **Respects working days.** Forecast books working days only; a planning in Kimai covers every day between its dates. Assignments are cut into runs of each person's working days, from their Kimai work contract and, where the planner knows them, public holidays. For someone without a work contract in Kimai yet, Forecast's own working days for that person are used, and the preview says so. The plannings of one assignment form one series in the planner.
 - **Shows you everything before it writes anything.** Reading Forecast only copies its plan in for review, and says what it found and what changed since the previous read. The preview then lists, per person, every assignment with its dates, hours and what the import will do with it (new, changed, to remove or already up to date), plus anything left out and why. Only "Import planning" on that last step writes to the planner.
-- **Is safe to run again.** Each planning remembers the Forecast assignment it came from. Running again leaves unchanged assignments alone (including edits made in Kimai since), replaces changed ones and removes those deleted or skipped in Forecast. Assignments that cannot be resolved keep whatever an earlier run created. Only the chosen date range is touched.
-- **Can start over.** One button removes every imported planning. Plannings made in Kimai, and your mapping decisions, stay.
+- **Is safe to run again.** Each planning remembers the Forecast assignment it came from. Running again:
+  - creates what is new in Forecast;
+  - leaves an assignment alone when it has not changed in Forecast or in your mapping, whatever the import dates. Edits made to its plannings in Kimai stay, including a planning split or deleted there;
+  - replaces the plannings of an assignment that changed in Forecast or in your mapping, including halves split off in the planner, so nothing is planned twice;
+  - removes the plannings of assignments deleted in Forecast or skipped since;
+  - leaves an assignment it cannot resolve this time (unmapped) as an earlier run created it.
+
+  Only the chosen dates are touched: plannings before the start date stay as history.
+- **Can start over.** One button removes every imported planning, including halves split off in the planner. Plannings made in Kimai, and your mapping decisions, stay.
 
 ## Requirements
 
@@ -67,9 +74,13 @@ What we learned from a real account, in case it saves you time:
 
 ## Limitations
 
-- The plan is imported, not synchronised: Forecast stays the source until you switch it off, and changes made in Kimai to a planning are overwritten when its Forecast assignment changes.
+- The plan is imported, not synchronised: Forecast stays the source until you switch it off. When an assignment changes in Forecast, its plannings are replaced and edits made to them in Kimai are lost; a planning deleted in Kimai comes back.
 - Forecast milestones, project budgets and roles are not imported.
 - A planning that clashes with one made in Kimai for the same person and project is not detected.
+
+## Security
+
+The token is never stored, logged or shown. One exception to know about: with Symfony's debug toolbar enabled (`APP_ENV=dev`), the profiler records outgoing HTTP requests and submitted forms, token included, so run imports on production-mode instances or clear the profiler afterwards.
 
 ## Development
 

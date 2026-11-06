@@ -16,25 +16,32 @@ namespace KimaiPlugin\ForecastImportBundle\Import;
  */
 final class PlannedAssignment
 {
-    public readonly string $fingerprint;
+    public const GROUP_PREFIX = 'forecast-';
 
     /**
      * @param list<PlannedPart> $parts
+     * @param string $fingerprint the assignment as Forecast has it plus where the mapping sends it, independent of the
+     *                            import range, so a later run with another range still recognises it as unchanged
      */
     public function __construct(
         public readonly int $forecastId,
         public readonly array $parts,
+        public readonly string $fingerprint,
     ) {
-        $this->fingerprint = sha1((string) json_encode(array_map(static fn (PlannedPart $part): array => $part->fingerprintData(), $parts)));
     }
 
     /**
-     * Parts of one assignment share a recurrence group, so the planner treats them as one series ("all future
-     * instances") the way it treats plannings it split into working days itself.
+     * Every planning of one assignment shares a recurrence group, so the planner treats them as one series ("all future
+     * instances") and so the halves the planner makes when someone splits an imported planning can still be found.
      */
-    public function recurrenceGroup(): ?string
+    public function recurrenceGroup(): string
     {
-        return \count($this->parts) > 1 ? 'forecast-' . $this->forecastId : null;
+        return self::GROUP_PREFIX . $this->forecastId;
+    }
+
+    public static function idFromGroup(string $group): ?int
+    {
+        return preg_match('/^' . preg_quote(self::GROUP_PREFIX, '/') . '(\d+)$/', $group, $matches) === 1 ? (int) $matches[1] : null;
     }
 
     public function totalHours(): float
