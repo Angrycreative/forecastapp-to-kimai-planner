@@ -23,6 +23,13 @@
                     <button type="submit" class="btn btn-primary ms-auto">{{ (data ? 'forecast_import.fetch_again' : 'forecast_import.fetch')|trans }}</button>
                 </div>
                 {{ form_end(form) }}
+                {% if savedToken %}
+                    <form method="post" action="{{ path('forecast_import_clear_token') }}" class="card-footer d-flex flex-wrap align-items-center gap-2 bg-transparent">
+                        <span class="text-secondary small flex-fill" style="min-width: 0">{{ 'forecast_import.token_saved_notice'|trans({'%account%': savedToken.accountId, '%date%': savedToken.savedAt|date_time}) }}</span>
+                        <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_token') }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">{{ 'forecast_import.clear_token'|trans }}</button>
+                    </form>
+                {% endif %}
             </div>
         </div>
 

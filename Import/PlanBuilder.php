@@ -44,6 +44,14 @@ final class PlanBuilder
                 continue;
             }
 
+            // a day off for everyone at once is left to the planner's public holidays, and shown in the preview
+            if (ForecastData::isForEveryone($assignment)) {
+                $label = $begin == $end ? $begin->format('Y-m-d') : $begin->format('Y-m-d') . ' – ' . $end->format('Y-m-d');
+                $plan->problem(Plan::FOR_EVERYONE, $label . ' (' . $this->projectLabel($data, (int) $assignment['project_id']) . ')');
+
+                continue;
+            }
+
             $user = $this->resolveUser($data, $mappings, $plan, $assignment);
             if ($user === false) {
                 continue;

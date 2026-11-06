@@ -95,9 +95,6 @@ final class ForecastData
         if ($assignment['allocation'] !== null && !\is_int($assignment['allocation'])) {
             throw new ForecastApiException('Forecast sent an assignment whose "allocation" is not a number of seconds. Its API may have changed; nothing was imported.');
         }
-        if ($assignment['person_id'] === null && $assignment['placeholder_id'] === null) {
-            throw new ForecastApiException('Forecast sent an assignment for nobody. Its API may have changed; nothing was imported.');
-        }
     }
 
     /**
@@ -150,6 +147,17 @@ final class ForecastData
         $person = $this->people[$id] ?? null;
 
         return $person === null ? '#' . $id : trim($person['first_name'] . ' ' . $person['last_name']);
+    }
+
+    /**
+     * An assignment for no person and no placeholder: a day off Forecast gives everyone at once, such as New Year's
+     * Day, kept as "Time Off" without anyone on it.
+     *
+     * @param array<string, mixed> $assignment
+     */
+    public static function isForEveryone(array $assignment): bool
+    {
+        return $assignment['person_id'] === null && $assignment['placeholder_id'] === null;
     }
 
     /**

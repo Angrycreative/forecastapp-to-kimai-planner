@@ -13,6 +13,7 @@ namespace KimaiPlugin\ForecastImportBundle\Form;
 
 use App\Form\Type\DatePickerType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -20,7 +21,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Account, token and the dates to read. The token is used for this one request and never stored.
+ * Account, token and the dates to read. The token is kept, encrypted, only when "Remember" is ticked.
  */
 final class ConnectForm extends AbstractType
 {
@@ -33,10 +34,15 @@ final class ConnectForm extends AbstractType
         ]);
         $builder->add('token', PasswordType::class, [
             'label' => 'forecast_import.token',
-            'help' => 'forecast_import.token_help',
+            'help' => $options['token_saved'] ? 'forecast_import.token_help_saved' : 'forecast_import.token_help',
             'always_empty' => true,
-            'constraints' => [new Assert\NotBlank()],
+            'required' => !$options['token_saved'],
             'attr' => ['autocomplete' => 'off'],
+        ]);
+        $builder->add('remember', CheckboxType::class, [
+            'label' => 'forecast_import.remember_token',
+            'help' => 'forecast_import.remember_token_help',
+            'required' => false,
         ]);
         $builder->add('begin', DatePickerType::class, [
             'label' => 'forecast_import.begin',
@@ -54,6 +60,8 @@ final class ConnectForm extends AbstractType
         $resolver->setDefaults([
             'csrf_protection' => true,
             'csrf_token_id' => 'forecast_import_connect',
+            'token_saved' => false,
         ]);
+        $resolver->setAllowedTypes('token_saved', 'bool');
     }
 }

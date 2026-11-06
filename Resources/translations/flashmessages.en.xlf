@@ -30,6 +30,10 @@
                 <source>forecast_import.read_since_preview</source>
                 <target>Forecast was read again after this preview was shown, so nothing was imported. Check the preview below and import again.</target>
             </trans-unit>
+            <trans-unit id="forecast_import.token_cleared">
+                <source>forecast_import.token_cleared</source>
+                <target>The saved token was cleared. Enter one again for the next read.</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

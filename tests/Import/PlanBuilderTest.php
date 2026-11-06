@@ -243,6 +243,17 @@ final class PlanBuilderTest extends TestCase
         self::assertFalse($plan->hasBlockingProblems());
     }
 
+    public function testLeavesDaysOffForEveryoneToThePlannersHolidays(): void
+    {
+        $plan = $this->build([$this->assignment(7, '2027-01-01', '2027-01-01', null, ['person_id' => null, 'project_id' => self::TIME_OFF])]);
+
+        self::assertSame([], $plan->assignments());
+        self::assertSame([], $plan->skippedIds());
+        self::assertSame([], $plan->unresolvedIds());
+        self::assertSame(['2027-01-01 (Time Off)' => 1], $plan->problems()[Plan::FOR_EVERYONE]);
+        self::assertFalse($plan->hasBlockingProblems());
+    }
+
     public function testNotesAnInactiveUser(): void
     {
         $this->user->setEnabled(false);
