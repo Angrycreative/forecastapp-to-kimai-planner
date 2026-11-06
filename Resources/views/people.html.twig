@@ -1,0 +1,41 @@
+{% extends '@ForecastImport/_layout.html.twig' %}
+
+{% block heading %}{{ 'forecast_import.step_people'|trans }}{% endblock %}
+{% block heading_actions %}
+    <a href="{{ path('forecast_import_projects') }}" class="btn btn-primary">{{ 'forecast_import.next_projects'|trans }}</a>
+{% endblock %}
+
+{% block content %}
+    <p class="text-secondary" style="max-width: 70ch">{{ 'forecast_import.people_intro'|trans }}</p>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table">
+                <thead>
+                    <tr>
+                        <th>{{ 'forecast_import.forecast'|trans }}</th>
+                        <th class="text-end">{{ 'forecast_import.assignments'|trans }}</th>
+                        <th>{{ 'forecast_import.kimai'|trans }}</th>
+                        <th class="w-1"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td>
+                                {{ row.name }}
+                                {% if row.kind == 'placeholder' %}<span class="badge bg-purple-lt ms-1">{{ 'forecast_import.placeholder'|trans }}</span>{% endif %}
+                                {% if row.archived %}<span class="badge bg-secondary-lt ms-1">{{ 'forecast_import.archived'|trans }}</span>{% endif %}
+                                {% if row.email %}<div class="text-secondary small">{{ row.email }}</div>{% endif %}
+                            </td>
+                            <td class="text-end" style="font-variant-numeric: tabular-nums">{{ row.assignments }}</td>
+                            <td>{{ include('@ForecastImport/_target.html.twig', {'target': row.target}) }}</td>
+                            <td>
+                                <a href="{{ path('forecast_import_edit_person', {'kind': row.kind, 'id': row.id}) }}" class="btn btn-sm modal-ajax-form">{{ 'forecast_import.change'|trans }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

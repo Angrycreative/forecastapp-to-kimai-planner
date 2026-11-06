@@ -1,0 +1,16 @@
+{% extends 'page_setup.html.twig' %}
+
+{% block main %}
+    <div class="page-header d-print-none mb-3">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">
+                    <a href="{{ path('forecast_import') }}">{{ 'forecast_import.title'|trans }}</a>
+                </div>
+                <h2 class="page-title">{% block heading %}{% endblock %}</h2>
+            </div>
+            <div class="col-auto ms-auto d-flex gap-2">{% block heading_actions %}{% endblock %}</div>
+        </div>
+    </div>
+    {% block content %}{% endblock %}
+{% endblock %}

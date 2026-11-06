@@ -1,0 +1,22 @@
+{% extends '@ForecastImport/_layout.html.twig' %}
+
+{% block heading %}{{ 'forecast_import.step_tentative'|trans }}{% endblock %}
+
+{% block content %}
+    {% if not supported %}
+        <div class="alert alert-warning">{{ 'forecast_import.tentative_unsupported'|trans }}</div>
+    {% endif %}
+    <div class="card" style="max-width: 720px">
+        {{ form_start(form) }}
+        <div class="card-body">
+            {% if form.tags.vars.choices is empty %}
+                <p class="text-secondary">{{ 'forecast_import.no_tags'|trans }}</p>
+            {% endif %}
+            {{ form_widget(form) }}
+        </div>
+        <div class="card-footer text-end">
+            <button type="submit" class="btn btn-primary">{{ 'forecast_import.save_and_preview'|trans }}</button>
+        </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

@@ -1,0 +1,6 @@
+kimai_forecast_import:
+    resource: '../../Controller/'
+    type: attribute
+    prefix: /{_locale}
+    defaults:
+        _locale: '%locale%'

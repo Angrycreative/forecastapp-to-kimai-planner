@@ -1,30 +1,85 @@
 # Forecast import for the Kimai Weekly Planner
 
-Moving from [Harvest Forecast](https://www.getharvest.com/forecast) to [Kimai](https://www.kimai.org/)? This plugin brings your team's plan with you. A super admin connects to Forecast, reviews how its people and projects match Kimai's users, customers and projects, and imports the planning, time off and tentative work into the [Weekly Planner](https://github.com/happiness/PlannerBundle). Nobody has to re-enter the next few months by hand.
+Moving from [Harvest Forecast](https://www.getharvest.com/forecast) to [Kimai](https://www.kimai.org/)? This plugin brings your team's plan with you. A super admin reads Forecast once, decides where its people and projects belong in Kimai, checks a preview and imports the planning, time off and tentative work into the [Weekly Planner](https://github.com/happiness/PlannerBundle). Nobody has to re-enter the coming months by hand, and you can run it again until the day you switch Forecast off.
 
-> **Status: early development.** Not ready for use yet. Watch the repository for the first release.
+Built by [Angry Creative](https://angrycreative.se) for our own move from Forecast to Kimai, and shared so yours is easier.
 
-## What it will do
+## What it does
 
-- Connect to Forecast with a Harvest personal access token and your Forecast account ID. The token is used for the import only and never stored.
-- Match people by email, and customers and projects by name, with Forecast's Harvest project link as an extra hint.
-- Show a preview before anything is written: what matched, what didn't, and what will be created. Map or skip anything unmatched by hand.
-- Import assignments as plannings, Forecast time off as planner time off, and tentative work as tentative planning.
-- Run again safely: each planning remembers its Forecast assignment, so a second run updates rather than duplicates. Useful for a final top-up on cutover day.
-- Offer a console command for large accounts, alongside the screen.
+- **Reads Forecast with a token you don't have to trust it with.** You enter a Harvest personal access token and your Forecast account ID. The token is used for that one read and never stored. The plugin only ever reads: it cannot change anything in Forecast.
+- **Matches people automatically.** Forecast people are matched to Kimai users by email address. You can change any match, or leave someone out.
+- **Suggests where each project goes.** Project names rarely survive a move unchanged ("Acme / Acme Marketing" in Forecast, "Acme Ltd / Acme Marketing Services" in Kimai), so the plugin scores how alike the customer and project names are and suggests the closest Kimai project. Strong suggestions are ticked for you to accept in one go; you confirm or change the rest. A Forecast project can also go to a customer without a project.
+- **Brings time off across as time off.** Forecast's "Time Off" project becomes planner time off, whole days included.
+- **Lets you say what "tentative" means.** Forecast has no tentative flag, so you choose project tags (such as "not signed") whose assignments are imported as tentative planning.
+- **Respects working days.** Forecast books working days only; a planning in Kimai covers every day between its dates. Assignments are cut into runs of each person's working days, from their Kimai work contract and, where the planner knows them, public holidays. The parts of one assignment form one series in the planner.
+- **Shows you everything before it writes anything.** The preview counts what would be created, changed and removed, and lists what would be left out and why.
+- **Is safe to run again.** Each planning remembers the Forecast assignment it came from. Running again leaves unchanged assignments alone (including edits made in Kimai since), replaces changed ones and removes those deleted or skipped in Forecast. Assignments that cannot be resolved keep whatever an earlier run created. Only the chosen date range is touched.
+- **Can start over.** One button removes every imported planning. Plannings made in Kimai, and your mapping decisions, stay.
 
 ## Requirements
 
 - Kimai 2.60 or later
-- [PlannerBundle](https://github.com/happiness/PlannerBundle) installed
+- [PlannerBundle](https://github.com/happiness/PlannerBundle) installed. Time off and tentative planning need a planner version that has them; with an older planner those assignments are reported and imported as far as it allows.
 - Outbound HTTPS from the Kimai server to `api.forecastapp.com`
+- A Harvest personal access token for someone with access to the Forecast account ([id.getharvest.com/developers](https://id.getharvest.com/developers))
+
+## Installation
+
+1. Copy or clone the plugin into `var/plugins/ForecastImportBundle` (the directory name matters).
+2. Create its database tables: `bin/console kimai:plugins --install`
+3. Clear the cache: `bin/console cache:clear`
+
+Super admins get the `forecast_import` permission and find **Forecast import** under **System**. Grant the permission to other roles under **System > Role permissions** if you need to, keeping in mind that importing writes planning for everyone.
+
+## Using it
+
+1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created.
+2. **People.** Check the automatic matches and decide about anyone unmatched. Placeholders are skipped by default because the planner plans people, but you can give one to a user.
+3. **Projects.** Accept the ticked suggestions, then go through the rest. Unmapped projects are listed first.
+4. **Tentative work.** Tick the tags that mean "not confirmed yet".
+5. **Preview and import.** Check the counts and anything worth checking, then import.
+
+Run it again whenever Forecast changes: read Forecast again, review anything new, preview, import.
+
+### From the command line
+
+For large accounts or a scripted cutover. The mapping decisions made on the screen are used; people are still matched by email without them.
+
+```bash
+# the token comes from FORECAST_TOKEN, or is asked for without echoing it
+FORECAST_TOKEN=... bin/console kimai:forecast-import --fetch --account-id=123456 --dry-run
+bin/console kimai:forecast-import --accept-suggestions   # use the last data read, accept confident suggestions, import
+```
+
+Options: `--fetch`, `--account-id`, `--begin` and `--end` (any date PHP understands, default today to a year ahead), `--accept-suggestions`, `--dry-run`.
 
 ## About the Forecast API
 
-Forecast has no official public API. This plugin uses the same endpoints Forecast's own web app calls, as the community libraries [xvilo/harvest-forecast](https://github.com/xvilo/harvest-forecast) and [forecast-promise](https://github.com/dan1elhughes/forecast-promise) do. It reads only and never changes anything in Forecast. If Forecast changes its API, the import stops with a clear error instead of importing half a plan.
+Forecast has no official public API. This plugin uses the endpoints Forecast's own web app calls, as the community libraries [xvilo/harvest-forecast](https://github.com/xvilo/harvest-forecast) and [forecast-promise](https://github.com/dan1elhughes/forecast-promise) do: `/whoami`, `/people`, `/placeholders`, `/clients`, `/projects` and `/assignments` (in chunks of 180 days, since Forecast requires a date range). Every field the import relies on is checked when Forecast answers, so if Forecast changes its API the import stops with a clear message instead of importing half a plan.
+
+What we learned from a real account, in case it saves you time:
+
+- An assignment's `allocation` is seconds per day; `null` means a whole day and is how most time off is stored.
+- Repeating assignments arrive already expanded, one assignment per repeat.
+- Few projects carry a `harvest_id`, even in accounts that came from Harvest, so names are the reliable way to match.
+
+## Limitations
+
+- The plan is imported, not synchronised: Forecast stays the source until you switch it off, and changes made in Kimai to a planning are overwritten when its Forecast assignment changes.
+- Forecast milestones, project budgets and roles are not imported.
+- A planning that clashes with one made in Kimai for the same person and project is not detected.
+
+## Development
+
+Tests run against an existing Kimai checkout, which supplies Kimai's classes and Symfony:
+
+```bash
+composer install -d tools/phpunit
+KIMAI_DIR=/path/to/kimai tools/phpunit/vendor/bin/phpunit
+```
+
+`KIMAI_DIR` defaults to a `kimai` directory next to this one. The planner is loaded from `$KIMAI_DIR/var/plugins/PlannerBundle`.
 
 ## Licence
 
 [AGPL-3.0-or-later](LICENSE), the same as Kimai and PlannerBundle.
-
-Built by [Angry Creative](https://angrycreative.se), who moved from Forecast to Kimai themselves.

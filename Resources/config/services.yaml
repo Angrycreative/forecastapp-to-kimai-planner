@@ -7,7 +7,21 @@ services:
     KimaiPlugin\ForecastImportBundle\:
         resource: '../../*'
         exclude:
-            - '../../Resources/'
             - '../../DependencyInjection/'
+            - '../../Entity/'
+            - '../../Forecast/ForecastApiException.php'
+            - '../../Forecast/ForecastCredentials.php'
+            - '../../Forecast/ForecastData.php'
+            - '../../Import/{ImportResult,MappingSet,Plan,PlannedAssignment,PlannedPart,ProjectCandidate,ProjectSuggester,Target}.php'
+            - '../../Migrations/'
+            - '../../Resources/'
             - '../../tests/'
+            - '../../tools/'
             - '../../vendor/'
+
+    KimaiPlugin\ForecastImportBundle\Import\WorkDayCalendar: '@KimaiPlugin\ForecastImportBundle\Import\KimaiWorkDayCalendar'
+
+    # public holidays only exist in planner versions that ship a holiday provider; without one the calendar ignores them
+    KimaiPlugin\ForecastImportBundle\Import\KimaiWorkDayCalendar:
+        arguments:
+            $holidayProvider: '@?KimaiPlugin\PlannerBundle\Holiday\HolidayProviderInterface'

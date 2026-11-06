@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+    <file source-language="en" target-language="en" datatype="plaintext" original="none">
+        <body>
+            <trans-unit id="forecast_import.title">
+                <source>forecast_import.title</source>
+                <target>Forecast import</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.intro">
+                <source>forecast_import.intro</source>
+                <target>Bring your team's plan over from Harvest Forecast. Read Forecast once, decide where its people and projects go in Kimai, check the preview, then import. You can run it again at any time: unchanged plans stay as they are, changed ones are updated and nothing is created twice.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.planner_missing">
+                <source>forecast_import.planner_missing</source>
+                <target>The Weekly Planner (PlannerBundle) is not installed. Install it before importing.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.step_connect">
+                <source>forecast_import.step_connect</source>
+                <target>Read Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.step_people">
+                <source>forecast_import.step_people</source>
+                <target>People</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.step_projects">
+                <source>forecast_import.step_projects</source>
+                <target>Projects</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.step_tentative">
+                <source>forecast_import.step_tentative</source>
+                <target>Tentative work</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.step_preview">
+                <source>forecast_import.step_preview</source>
+                <target>Preview and import</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.account_id">
+                <source>forecast_import.account_id</source>
+                <target>Forecast account ID</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.account_id_help">
+                <source>forecast_import.account_id_help</source>
+                <target>The number in your Forecast address: forecastapp.com/&lt;account ID&gt;/.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.account_id_invalid">
+                <source>forecast_import.account_id_invalid</source>
+                <target>The account ID is a number.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.token">
+                <source>forecast_import.token</source>
+                <target>Harvest personal access token</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.token_help">
+                <source>forecast_import.token_help</source>
+                <target>Create one at id.getharvest.com/developers. It is used to read Forecast this once and is never stored.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.begin">
+                <source>forecast_import.begin</source>
+                <target>Import from</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.begin_help">
+                <source>forecast_import.begin_help</source>
+                <target>Planning before this date is not imported. Today is usually right.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.end">
+                <source>forecast_import.end</source>
+                <target>Import until</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.fetch">
+                <source>forecast_import.fetch</source>
+                <target>Read Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.fetch_again">
+                <source>forecast_import.fetch_again</source>
+                <target>Read Forecast again</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.last_fetch">
+                <source>forecast_import.last_fetch</source>
+                <target>Read %date%: %count% assignments between %begin% and %end%.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.mapped_of">
+                <source>forecast_import.mapped_of</source>
+                <target>%done% of %total% mapped</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.tags_chosen">
+                <source>forecast_import.tags_chosen</source>
+                <target>%count% tags</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.start_over">
+                <source>forecast_import.start_over</source>
+                <target>Start over</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.start_over_help">
+                <source>forecast_import.start_over_help</source>
+                <target>Removes the %count% plannings this import created. Plannings made in Kimai and your mapping decisions are kept.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.start_over_confirm">
+                <source>forecast_import.start_over_confirm</source>
+                <target>Yes, remove all %count% imported plannings</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.start_over_button">
+                <source>forecast_import.start_over_button</source>
+                <target>Remove imported plannings</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.people_intro">
+                <source>forecast_import.people_intro</source>
+                <target>People are matched to Kimai users by email address. Placeholders are skipped, because the planner plans people only, but you can give one to a user.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.projects_intro">
+                <source>forecast_import.projects_intro</source>
+                <target>Choose the Kimai customer, and optionally project, for each Forecast project. Suggestions compare customer and project names; strong ones are ticked already. Forecast's "Time Off" project becomes time off.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.next_projects">
+                <source>forecast_import.next_projects</source>
+                <target>Next: projects</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.next_tentative">
+                <source>forecast_import.next_tentative</source>
+                <target>Next: tentative work</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.forecast">
+                <source>forecast_import.forecast</source>
+                <target>Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.kimai">
+                <source>forecast_import.kimai</source>
+                <target>Kimai</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.assignments">
+                <source>forecast_import.assignments</source>
+                <target>Assignments</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.assignments_count">
+                <source>forecast_import.assignments_count</source>
+                <target>%count% assignments</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.placeholder">
+                <source>forecast_import.placeholder</source>
+                <target>Placeholder</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.archived">
+                <source>forecast_import.archived</source>
+                <target>Archived in Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.disabled">
+                <source>forecast_import.disabled</source>
+                <target>Inactive</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.unmapped">
+                <source>forecast_import.unmapped</source>
+                <target>Not mapped</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.time_off">
+                <source>forecast_import.time_off</source>
+                <target>Time off</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.skipped">
+                <source>forecast_import.skipped</source>
+                <target>Skipped</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.automatic">
+                <source>forecast_import.automatic</source>
+                <target>Automatic</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.automatic_help">
+                <source>forecast_import.automatic_help</source>
+                <target>Found by the import, not saved. Change it to decide yourself.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.change">
+                <source>forecast_import.change</source>
+                <target>Change</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.reset">
+                <source>forecast_import.reset</source>
+                <target>Undo my choice</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.suggestion">
+                <source>forecast_import.suggestion</source>
+                <target>Suggestion</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.score_help">
+                <source>forecast_import.score_help</source>
+                <target>How closely the names match</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.accept_help">
+                <source>forecast_import.accept_help</source>
+                <target>Tick the suggestions you agree with and accept them together.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.accept_selected">
+                <source>forecast_import.accept_selected</source>
+                <target>Accept ticked suggestions</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.accept_one">
+                <source>forecast_import.accept_one</source>
+                <target>Accept this suggestion</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action">
+                <source>forecast_import.action</source>
+                <target>Import as</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_user">
+                <source>forecast_import.action_user</source>
+                <target>Planning for a Kimai user</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_skip_person">
+                <source>forecast_import.action_skip_person</source>
+                <target>Do not import their planning</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_work">
+                <source>forecast_import.action_work</source>
+                <target>Work for a customer</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_time_off">
+                <source>forecast_import.action_time_off</source>
+                <target>Time off</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.action_skip_project">
+                <source>forecast_import.action_skip_project</source>
+                <target>Do not import this project</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.choose_user">
+                <source>forecast_import.choose_user</source>
+                <target>Choose a user.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.choose_customer">
+                <source>forecast_import.choose_customer</source>
+                <target>Choose a customer.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.project_of_other_customer">
+                <source>forecast_import.project_of_other_customer</source>
+                <target>This project belongs to another customer.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.tentative_tags">
+                <source>forecast_import.tentative_tags</source>
+                <target>Tags that mean tentative</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.tentative_tags_help">
+                <source>forecast_import.tentative_tags_help</source>
+                <target>Forecast has no tentative flag. Assignments on projects with any of these tags are imported as tentative planning.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.tentative_unsupported">
+                <source>forecast_import.tentative_unsupported</source>
+                <target>The installed Weekly Planner has no tentative planning, so these assignments are imported as confirmed.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.no_tags">
+                <source>forecast_import.no_tags</source>
+                <target>None of the projects in this import have tags.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.save_and_preview">
+                <source>forecast_import.save_and_preview</source>
+                <target>Save and preview</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.preview_intro">
+                <source>forecast_import.preview_intro</source>
+                <target>What importing %begin% to %end% would do right now. Nothing has been written yet.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.result_created">
+                <source>forecast_import.result_created</source>
+                <target>New</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.result_updated">
+                <source>forecast_import.result_updated</source>
+                <target>Changed since last import</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.result_unchanged">
+                <source>forecast_import.result_unchanged</source>
+                <target>Unchanged</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.result_removed">
+                <source>forecast_import.result_removed</source>
+                <target>Removed or skipped in Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.result_plannings">
+                <source>forecast_import.result_plannings</source>
+                <target>Plannings: %created% to create, %removed% to remove, %shortened% to shorten. %hours% planned hours in total.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problems">
+                <source>forecast_import.problems</source>
+                <target>Worth checking</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.left_out">
+                <source>forecast_import.left_out</source>
+                <target>Left out</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.note">
+                <source>forecast_import.note</source>
+                <target>Note</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.person_unmapped">
+                <source>forecast_import.problem.person_unmapped</source>
+                <target>People without a Kimai user</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.placeholder_unmapped">
+                <source>forecast_import.problem.placeholder_unmapped</source>
+                <target>Placeholders without a Kimai user</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.project_unmapped">
+                <source>forecast_import.problem.project_unmapped</source>
+                <target>Projects without a Kimai customer</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.user_disabled">
+                <source>forecast_import.problem.user_disabled</source>
+                <target>Planned for inactive Kimai users</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.time_off_unsupported">
+                <source>forecast_import.problem.time_off_unsupported</source>
+                <target>Time off, which the installed planner cannot hold</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.tentative_unsupported">
+                <source>forecast_import.problem.tentative_unsupported</source>
+                <target>Tentative work, imported as confirmed</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.run_help">
+                <source>forecast_import.run_help</source>
+                <target>Assignments that are left out keep whatever an earlier import created. Run the import again whenever Forecast changes.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.back_to_projects">
+                <source>forecast_import.back_to_projects</source>
+                <target>Back to projects</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.run">
+                <source>forecast_import.run</source>
+                <target>Import</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

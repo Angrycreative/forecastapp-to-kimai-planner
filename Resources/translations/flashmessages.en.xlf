@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+    <file source-language="en" target-language="en" datatype="plaintext" original="none">
+        <body>
+            <trans-unit id="forecast_import.fetched">
+                <source>forecast_import.fetched</source>
+                <target>Forecast was read. Check people and projects next.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.fetch_failed">
+                <source>forecast_import.fetch_failed</source>
+                <target>Forecast could not be read: %reason%</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.accepted">
+                <source>forecast_import.accepted</source>
+                <target>{0} No suggestions accepted.|{1} One suggestion accepted.|]1,Inf[ %count% suggestions accepted.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.imported">
+                <source>forecast_import.imported</source>
+                <target>Imported: %created% new, %updated% changed, %removed% removed, %unchanged% unchanged.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.removed">
+                <source>forecast_import.removed</source>
+                <target>%count% imported plannings removed.</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

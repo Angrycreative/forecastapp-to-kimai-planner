@@ -1,0 +1,72 @@
+{% extends '@ForecastImport/_layout.html.twig' %}
+
+{% block heading %}{{ 'forecast_import.step_preview'|trans }}{% endblock %}
+
+{% block content %}
+    <p class="text-secondary" style="max-width: 70ch">
+        {{ 'forecast_import.preview_intro'|trans({'%begin%': plan.begin|date_short, '%end%': plan.end|date_short}) }}
+    </p>
+
+    <div class="row row-cards mb-3">
+        {% for key, value in {
+            'forecast_import.result_created': result.created,
+            'forecast_import.result_updated': result.updated,
+            'forecast_import.result_unchanged': result.unchanged,
+            'forecast_import.result_removed': result.removed,
+        } %}
+            <div class="col-6 col-lg-3">
+                <div class="card card-sm">
+                    <div class="card-body">
+                        <div class="text-secondary small">{{ key|trans }}</div>
+                        <div class="h2 m-0" style="font-variant-numeric: tabular-nums">{{ value }}</div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="m-0">
+                {{ 'forecast_import.result_plannings'|trans({
+                    '%created%': result.planningsCreated,
+                    '%removed%': result.planningsRemoved,
+                    '%shortened%': result.planningsShortened,
+                    '%hours%': plan.totalHours|round
+                }) }}
+            </p>
+        </div>
+    </div>
+
+    {% if plan.problems is not empty %}
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">{{ 'forecast_import.problems'|trans }}</h3></div>
+            <div class="list-group list-group-flush">
+                {% for problem, subjects in plan.problems %}
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge {{ problem in blocking ? 'bg-yellow-lt' : 'bg-secondary-lt' }}">{{ (problem in blocking ? 'forecast_import.left_out' : 'forecast_import.note')|trans }}</span>
+                            <strong>{{ ('forecast_import.problem.' ~ problem)|trans }}</strong>
+                        </div>
+                        <div class="text-secondary small">
+                            {% for subject, count in subjects %}{{ subject }} ({{ count }}){% if not loop.last %}, {% endif %}{% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <form method="post" action="{{ path('forecast_import_run') }}">
+            <div class="card-body">
+                <p class="m-0">{{ 'forecast_import.run_help'|trans }}</p>
+            </div>
+            <div class="card-footer d-flex gap-2 justify-content-end">
+                <input type="hidden" name="_token" value="{{ csrf_token('forecast_import_run') }}">
+                <a href="{{ path('forecast_import_projects') }}" class="btn">{{ 'forecast_import.back_to_projects'|trans }}</a>
+                <button type="submit" class="btn btn-primary" {{ not capabilities.plannerInstalled or not result.hasChanges ? 'disabled' }}>{{ 'forecast_import.run'|trans }}</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

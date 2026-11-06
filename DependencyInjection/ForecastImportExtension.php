@@ -14,13 +14,31 @@ namespace KimaiPlugin\ForecastImportBundle\DependencyInjection;
 use App\Plugin\AbstractPluginExtension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
-class ForecastImportExtension extends AbstractPluginExtension
+class ForecastImportExtension extends AbstractPluginExtension implements PrependExtensionInterface
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');
+    }
+
+    /**
+     * One permission, held by super admins only: importing writes planning for everyone.
+     */
+    public function prepend(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('kimai', [
+            'permissions' => [
+                'sets' => [
+                    'FORECAST_IMPORT' => ['forecast_import'],
+                ],
+                'roles' => [
+                    'ROLE_SUPER_ADMIN' => ['forecast_import'],
+                ],
+            ],
+        ]);
     }
 }
