@@ -126,9 +126,8 @@ final class ForecastImportController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $this->mappings->save($kind, $id, $form->getData()->toTarget());
-            $this->flashSuccess('action.update.success');
 
-            return $this->redirectToRoute('forecast_import_people');
+            return $this->saved($request, 'forecast_import_people');
         }
 
         return $this->render('@ForecastImport/edit.html.twig', [
@@ -139,6 +138,36 @@ final class ForecastImportController extends AbstractController
             'back' => $this->generateUrl('forecast_import_people'),
             'resetUrl' => $this->generateUrl('forecast_import_reset', ['kind' => $kind, 'id' => $id]),
         ]);
+    }
+
+    #[Route(path: '/people/{kind}/{id}/row', name: 'forecast_import_person_row', requirements: ['kind' => 'person|placeholder', 'id' => '\d+'], methods: ['GET'])]
+    public function personRow(string $kind, int $id): Response
+    {
+        $data = $this->import->data();
+        $row = $data === null ? null : $this->findRow($this->mappings->personRows($data), $id, $kind);
+        if ($row === null) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('@ForecastImport/_person_row.html.twig', ['row' => $row]);
+    }
+
+    #[Route(path: '/projects/{id}/row', name: 'forecast_import_project_row', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function projectRow(int $id): Response
+    {
+        $data = $this->import->data();
+        $row = $data === null ? null : ($this->mappings->projectRows($data, true, $id)[0] ?? null);
+        if ($row === null) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render('@ForecastImport/_project_row.html.twig', ['row' => $row, 'confident' => ProjectSuggester::CONFIDENT_SCORE]);
+    }
+
+    #[Route(path: '/steps/{active}', name: 'forecast_import_steps', requirements: ['active' => 'read|people|projects|tentative|preview'], methods: ['GET'])]
+    public function stepBar(string $active): Response
+    {
+        return $this->render('@ForecastImport/_steps.html.twig', ['steps' => $this->steps($this->import->data(), $active)]);
     }
 
     #[Route(path: '/projects', name: 'forecast_import_projects', methods: ['GET'])]
@@ -196,9 +225,8 @@ final class ForecastImportController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $this->mappings->save(Mapping::PROJECT, $id, $form->getData()->toTarget());
-            $this->flashSuccess('action.update.success');
 
-            return $this->redirectToRoute('forecast_import_projects');
+            return $this->saved($request, 'forecast_import_projects');
         }
 
         return $this->render('@ForecastImport/edit.html.twig', [
@@ -326,6 +354,20 @@ final class ForecastImportController extends AbstractController
         }
 
         return $this->redirectToRoute('forecast_import');
+    }
+
+    /**
+     * After a mapping is saved: a dialog only needs to hear it worked (the list then refreshes the changed row), a full
+     * page goes back to the list.
+     */
+    private function saved(Request $request, string $route): Response
+    {
+        if ($request->headers->get('X-Requested-With') === 'Kimai-Modal') {
+            return new Response('');
+        }
+        $this->flashSuccess('action.update.success');
+
+        return $this->redirectToRoute($route);
     }
 
     /**

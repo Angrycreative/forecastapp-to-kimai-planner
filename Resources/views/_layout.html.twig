@@ -14,27 +14,18 @@
     {{ include('@ForecastImport/_guide.html.twig', {'open': (data ?? null) is null}) }}
 
     {% if steps is defined %}
-        <nav class="card mb-3" aria-label="{{ 'forecast_import.steps'|trans }}">
-            <div class="card-body py-3">
-                <div class="steps steps-counter steps-blue my-0">
-                    {% for step in steps %}
-                        {% if step.enabled and not step.active %}
-                            <a href="{{ path(step.route) }}" class="step-item">
-                        {% else %}
-                            <span class="step-item{{ step.active ? ' active' }}" {% if step.active %}aria-current="step"{% endif %}>
-                        {% endif %}
-                            <span class="d-block">{{ step.title }}</span>
-                            {% if step.status %}
-                                <span class="d-block small {{ step.done ? 'text-green' : 'text-secondary' }}">{{ step.status }}</span>
-                            {% endif %}
-                        {% if step.enabled and not step.active %}</a>{% else %}</span>{% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-        </nav>
+        {{ include('@ForecastImport/_steps.html.twig') }}
     {% endif %}
 
     {% block content %}{% endblock %}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        tr.forecast-import-updated > td { background-color: var(--tblr-green-lt, rgba(47, 179, 68, .1)); transition: background-color .4s; }
+        @media (prefers-reduced-motion: reduce) { tr.forecast-import-updated > td { transition: none; } }
+    </style>
 {% endblock %}
 
 {% block javascripts %}
@@ -42,6 +33,42 @@
     <script>
         // Reading Forecast and importing can take a while: show that something is happening and prevent double clicks.
         document.addEventListener('DOMContentLoaded', function () {
+            // After a mapping dialog is saved, refresh only the row that was changed and the step bar, so ticked
+            // suggestions, scroll position and everything else on the page stay as they are.
+            let changedRow = null;
+            document.addEventListener('click', function (event) {
+                const link = event.target.closest('[data-forecast-row] a.modal-ajax-form');
+                if (link !== null) {
+                    changedRow = link.closest('[data-forecast-row]');
+                }
+            }, true);
+            const fetchHtml = function (url) {
+                return fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}, credentials: 'same-origin'})
+                    .then(function (response) { return response.ok ? response.text() : Promise.reject(response.status); })
+                    .then(function (html) {
+                        const template = document.createElement('template');
+                        template.innerHTML = html.trim();
+                        return template.content.firstElementChild;
+                    });
+            };
+            document.addEventListener('forecast_import.mapping', function () {
+                const row = changedRow;
+                changedRow = null;
+                if (row === null || !row.isConnected) {
+                    window.location.reload();
+                    return;
+                }
+                fetchHtml(row.dataset.forecastRow).then(function (fresh) {
+                    row.replaceWith(fresh);
+                    fresh.classList.add('forecast-import-updated');
+                    window.setTimeout(function () { fresh.classList.remove('forecast-import-updated'); }, 2500);
+                }).catch(function () { window.location.reload(); });
+                const steps = document.getElementById('forecast-import-steps');
+                if (steps !== null && steps.dataset.refresh) {
+                    fetchHtml(steps.dataset.refresh).then(function (fresh) { steps.replaceWith(fresh); }).catch(function () {});
+                }
+            });
+
             document.querySelectorAll('form[data-forecast-busy]').forEach(function (form) {
                 form.addEventListener('submit', function () {
                     form.querySelectorAll('button[type="submit"]').forEach(function (button) {

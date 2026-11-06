@@ -1,0 +1,31 @@
+{# One row of the projects list, also served on its own to refresh it after a change. #}
+{% set best = row.suggestions|first %}
+<tr data-forecast-row="{{ path('forecast_import_project_row', {'id': row.id}) }}">
+    <td>
+        {% if row.target is null and best %}
+            <input type="checkbox" class="form-check-input m-0" name="projects[]" value="{{ row.id }}" id="forecast-project-{{ row.id }}" aria-label="{{ 'forecast_import.accept_one'|trans }}" {{ best.score >= confident ? 'checked' }}>
+        {% endif %}
+    </td>
+    <td>
+        {% if row.client %}<div class="text-secondary small">{{ row.client }}</div>{% endif %}
+        {{ row.name }}
+        {% if row.archived %}<span class="badge bg-secondary-lt ms-1">{{ 'forecast_import.archived'|trans }}</span>{% endif %}
+        {% for tag in row.tags %}<span class="badge bg-secondary-lt ms-1">{{ tag }}</span>{% endfor %}
+    </td>
+    <td>{{ include('@ForecastImport/_planned.html.twig', {'planned': row.planned}) }}</td>
+    <td>
+        {% if row.target is null and best %}
+            <label for="forecast-project-{{ row.id }}" class="d-block m-0">
+                <span class="text-secondary small">{{ 'forecast_import.suggestion'|trans }}</span>
+                <span class="badge {{ best.score >= confident ? 'bg-green-lt' : 'bg-yellow-lt' }} ms-1" title="{{ 'forecast_import.score_help'|trans }}">{{ (best.score * 100)|round }}%</span>
+                <span class="d-block">{{ best.candidate.customerName }} <span class="text-secondary">/</span> {{ best.candidate.projectName }}</span>
+            </label>
+        {% else %}
+            {{ include('@ForecastImport/_target.html.twig', {'target': row.target}) }}
+        {% endif %}
+    </td>
+    <td>{{ include('@ForecastImport/_status.html.twig', {'target': row.target}) }}</td>
+    <td>
+        <a href="{{ path('forecast_import_edit_project', {'id': row.id}) }}" class="btn btn-sm modal-ajax-form">{{ 'forecast_import.change'|trans }}</a>
+    </td>
+</tr>
