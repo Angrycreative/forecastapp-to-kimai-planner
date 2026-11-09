@@ -279,6 +279,7 @@ final class PlanBuilderTest extends TestCase
         ?MappingSet $mappings = null,
         string $rangeBegin = '2026-11-09',
         bool $contract = true,
+        bool $reservations = true,
     ): Plan {
         $data = ForecastData::fromForecast('123', new \DateTimeImmutable($rangeBegin), new \DateTimeImmutable('2027-11-08'), new \DateTimeImmutable(), [
             'people' => [
@@ -314,7 +315,7 @@ final class PlanBuilderTest extends TestCase
             }
         };
 
-        return (new PlanBuilder($calendar, new PlannerCapabilities($timeOff, $tentative)))->build($data, $mappings);
+        return (new PlanBuilder($calendar, new PlannerCapabilities($timeOff, $tentative, $reservations)))->build($data, $mappings);
     }
 
     /**
@@ -335,5 +336,41 @@ final class PlanBuilderTest extends TestCase
             'active_on_days_off' => false,
             'updated_at' => '2026-11-01T10:00:00Z',
         ], $overrides);
+    }
+
+    public function testReservedTimeHasNoCustomerAndIsNeverTentative(): void
+    {
+        $mappings = new MappingSet([self::PERSON => Target::user($this->user)], [], [self::PROJECT => Target::reservation('agency-buffer')], ['pitch']);
+        $plan = $this->build([$this->assignment(1, '2026-11-09', '2026-11-13', 3600)], tags: ['pitch'], mappings: $mappings);
+
+        $part = $plan->assignments()[1]->parts[0];
+        self::assertSame('agency-buffer', $part->reservation);
+        self::assertSame('agency-buffer', $part->reservationName);
+        self::assertNull($part->customer);
+        self::assertNull($part->project);
+        self::assertFalse($part->timeOff);
+        self::assertFalse($part->tentative);
+        self::assertSame(1.0, $part->hoursPerDay);
+    }
+
+    public function testReservedTimeIsUnresolvedWhenThePlannerCannotHoldIt(): void
+    {
+        $mappings = new MappingSet([self::PERSON => Target::user($this->user)], [], [self::PROJECT => Target::reservation('agency-buffer')]);
+        $plan = $this->build([$this->assignment(1, '2026-11-09', '2026-11-09', 3600)], mappings: $mappings, reservations: false);
+
+        self::assertSame([], $plan->assignments());
+        self::assertArrayHasKey(Plan::RESERVATION_UNSUPPORTED, $plan->problems());
+        self::assertTrue($plan->hasBlockingProblems());
+    }
+
+    public function testMappingToReservedTimeChangesTheFingerprintButNothingElseDoes(): void
+    {
+        $work = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 3600)])->assignments()[1]->fingerprint;
+        $mappings = new MappingSet([self::PERSON => Target::user($this->user)], [], [self::PROJECT => Target::reservation('agency-buffer')]);
+        $reserved = $this->build([$this->assignment(1, '2026-11-09', '2026-11-10', 3600)], mappings: $mappings)->assignments()[1]->fingerprint;
+
+        self::assertNotSame($work, $reserved);
+        // what imports made before reserved time existed have stored: the fingerprint without a reservation
+        self::assertSame(sha1((string) json_encode(['2026-11-09', '2026-11-10', 3600, null, false, $this->user->getId(), $this->customer->getId(), $this->project->getId(), false, false, 1.0])), $work);
     }
 }

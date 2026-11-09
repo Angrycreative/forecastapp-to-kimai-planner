@@ -30,6 +30,7 @@ final class PlanBuilder
     public function __construct(
         private readonly WorkDayCalendar $calendar,
         private readonly PlannerCapabilities $capabilities,
+        private readonly ?ReservationCatalogue $reservations = null,
     ) {
     }
 
@@ -84,7 +85,15 @@ final class PlanBuilder
                 continue;
             }
 
-            $tentative = !$timeOff && $mappings->isTentative((array) ($project['tags'] ?? []));
+            $reservation = $target->kind === Target::RESERVATION ? $target->reservation : null;
+            if ($reservation !== null && !$this->capabilities->supportsReservations()) {
+                $plan->unresolved($id, Plan::RESERVATION_UNSUPPORTED, $projectLabel);
+
+                continue;
+            }
+
+            // reserved time is never tentative, whatever the project's tags say
+            $tentative = !$timeOff && $reservation === null && $mappings->isTentative((array) ($project['tags'] ?? []));
             if ($tentative && !$this->capabilities->supportsTentative()) {
                 $plan->problem(Plan::TENTATIVE_UNSUPPORTED, $projectLabel);
                 $tentative = false;
@@ -113,10 +122,12 @@ final class PlanBuilder
                     $timeOff,
                     $tentative,
                     $comment,
+                    $reservation,
+                    $reservation === null ? null : ($this->reservations?->name($reservation) ?? $reservation),
                 );
             }
 
-            $fingerprint = sha1((string) json_encode([
+            $fingerprinted = [
                 (string) $assignment['start_date'],
                 (string) $assignment['end_date'],
                 $assignment['allocation'],
@@ -128,7 +139,12 @@ final class PlanBuilder
                 $timeOff,
                 $tentative,
                 $hours,
-            ]));
+            ];
+            // only when there is one, so everything imported before reserved time existed stays unchanged
+            if ($reservation !== null) {
+                $fingerprinted[] = $reservation;
+            }
+            $fingerprint = sha1((string) json_encode($fingerprinted));
 
             $plan->add(new PlannedAssignment($id, $parts, $fingerprint));
         }

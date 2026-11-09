@@ -33,4 +33,6 @@ spl_autoload_register(static function (string $class) use ($namespaces): void {
             return;
         }
     }
-});
+// ahead of Kimai's own autoloader, which maps KimaiPlugin\ to var/plugins: where this bundle is installed there too,
+// the tests would otherwise run against the installed copy instead of this checkout
+}, true, true);

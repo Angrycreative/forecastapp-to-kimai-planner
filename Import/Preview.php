@@ -20,7 +20,7 @@ final class Preview
     private const ORDER = [ImportResult::CREATED => 0, ImportResult::UPDATED => 1, ImportResult::REMOVED => 2, ImportResult::UNCHANGED => 3];
 
     /**
-     * @return list<array{name: string, counts: array<string, int>, hours: float, rows: list<array{status: string, label: string, begin: \DateTimeInterface, end: \DateTimeInterface, hoursPerDay: ?float, timeOff: bool, tentative: bool, parts: int, comment: ?string}>}>
+     * @return list<array{name: string, counts: array<string, int>, hours: float, rows: list<array{status: string, label: string, begin: \DateTimeInterface, end: \DateTimeInterface, hoursPerDay: ?float, timeOff: bool, tentative: bool, reservation?: bool, parts: int, comment: ?string}>}>
      */
     public static function byPerson(Plan $plan, ImportResult $result): array
     {
@@ -37,12 +37,13 @@ final class Preview
             $people[$key]['name'] = $name;
             $people[$key]['rows'][] = [
                 'status' => $status,
-                'label' => $first->timeOff ? '' : ($first->project !== null ? $first->customer?->getName() . ' / ' . $first->project->getName() : (string) $first->customer?->getName()),
+                'label' => $first->timeOff ? '' : ($first->reservationName ?? ($first->project !== null ? $first->customer?->getName() . ' / ' . $first->project->getName() : (string) $first->customer?->getName())),
                 'begin' => $first->begin,
                 'end' => $last->end,
                 'hoursPerDay' => $first->hoursPerDay,
                 'timeOff' => $first->timeOff,
                 'tentative' => $first->tentative,
+                'reservation' => $first->reservation !== null,
                 'parts' => \count($assignment->parts),
                 'comment' => $first->comment,
             ];

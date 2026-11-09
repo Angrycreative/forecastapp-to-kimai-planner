@@ -59,6 +59,10 @@ class Mapping
     #[ORM\JoinColumn(name: 'project_id', nullable: true, onDelete: 'SET NULL')]
     private ?Project $project = null;
 
+    /** The key of one of the planner's reservations, for reserved time. */
+    #[ORM\Column(name: 'reservation_key', type: Types::STRING, length: 64, nullable: true)]
+    private ?string $reservation = null;
+
     /** Whether the decision named a project, so a project deleted since can be told from "customer only". */
     #[ORM\Column(name: 'with_project', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $hadProject = false;
@@ -110,12 +114,18 @@ class Mapping
         return $this->project;
     }
 
+    public function getReservation(): ?string
+    {
+        return $this->reservation;
+    }
+
     public function apply(Target $target): void
     {
         $this->action = $target->kind;
         $this->user = $target->user;
         $this->customer = $target->customer;
         $this->project = $target->project;
+        $this->reservation = $target->reservation;
         $this->hadProject = $target->project !== null;
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -136,6 +146,7 @@ class Mapping
             Target::USER => $this->user === null ? null : Target::user($this->user),
             Target::WORK => $this->workTarget(),
             Target::TIME_OFF => Target::timeOff(),
+            Target::RESERVATION => $this->reservation === null || $this->reservation === '' ? null : Target::reservation($this->reservation),
             Target::SKIP => Target::skip(),
             default => null,
         };

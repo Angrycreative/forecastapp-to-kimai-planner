@@ -22,12 +22,13 @@ final class Plan
     public const PROJECT_UNMAPPED = 'project_unmapped';
     public const USER_DISABLED = 'user_disabled';
     public const TIME_OFF_UNSUPPORTED = 'time_off_unsupported';
+    public const RESERVATION_UNSUPPORTED = 'reservation_unsupported';
     public const TENTATIVE_UNSUPPORTED = 'tentative_unsupported';
     public const NO_WORK_CONTRACT = 'no_work_contract';
     public const FOR_EVERYONE = 'for_everyone';
 
     /** Problems that mean an assignment is not imported, as opposed to imported with a caveat. */
-    public const BLOCKING = [self::PERSON_UNMAPPED, self::PLACEHOLDER_UNMAPPED, self::PROJECT_UNMAPPED, self::TIME_OFF_UNSUPPORTED];
+    public const BLOCKING = [self::PERSON_UNMAPPED, self::PLACEHOLDER_UNMAPPED, self::PROJECT_UNMAPPED, self::TIME_OFF_UNSUPPORTED, self::RESERVATION_UNSUPPORTED];
 
     /** @var array<int, PlannedAssignment> */
     private array $assignments = [];

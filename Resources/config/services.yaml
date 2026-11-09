@@ -29,3 +29,8 @@ services:
     KimaiPlugin\ForecastImportBundle\Import\TokenVault:
         arguments:
             $secret: '%kernel.secret%'
+
+    # reserved time only exists in planner versions that ship reservations; without them none is offered
+    KimaiPlugin\ForecastImportBundle\Import\ReservationCatalogue:
+        arguments:
+            $reservations: '@?KimaiPlugin\PlannerBundle\Reservation\PlanningReservations'

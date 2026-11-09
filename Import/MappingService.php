@@ -22,6 +22,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * - a person goes to the Kimai user with the same email address,
  * - a placeholder is skipped, because the planner has no placeholders,
  * - Forecast's "Time Off" project becomes time off,
+ * - a project named like one of the planner's reservations becomes that reserved time,
  * - anything else stays unmapped until someone decides.
  */
 class MappingService implements ResetInterface
@@ -31,6 +32,7 @@ class MappingService implements ResetInterface
     public function __construct(
         private readonly MappingRepository $repository,
         private readonly KimaiCatalogue $catalogue,
+        private readonly ReservationCatalogue $reservations,
     ) {
     }
 
@@ -129,8 +131,15 @@ class MappingService implements ResetInterface
             $client = $project === null || $project['client_id'] === null ? null : $data->clientName((int) $project['client_id']);
             $name = (string) ($project['name'] ?? '#' . $id);
             $target = isset($saved[(string) $id]) ? $saved[(string) $id]->toTarget() : null;
+            // reserved time the planner does not offer any more (or no longer at all) leaves the project unmapped
+            if ($target?->reservation !== null && !$this->reservations->exists($target->reservation)) {
+                $target = null;
+            }
             if ($target === null && $data->isTimeOffProject($id)) {
                 $target = Target::timeOff(true);
+            }
+            if ($target === null && ($reservation = $this->reservations->keyByName($name)) !== null) {
+                $target = Target::reservation($reservation, true);
             }
             $rows[] = [
                 'id' => $id,

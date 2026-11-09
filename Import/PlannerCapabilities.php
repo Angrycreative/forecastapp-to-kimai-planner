@@ -12,8 +12,8 @@ declare(strict_types=1);
 namespace KimaiPlugin\ForecastImportBundle\Import;
 
 /**
- * What the installed Weekly Planner can hold. Time off and tentative planning are newer than the planner's first
- * releases, so the import checks for them instead of assuming them.
+ * What the installed Weekly Planner can hold. Time off, tentative planning and reserved time are newer than the
+ * planner's first releases, so the import checks for them instead of assuming them.
  */
 class PlannerCapabilities
 {
@@ -22,6 +22,7 @@ class PlannerCapabilities
     public function __construct(
         private readonly ?bool $timeOff = null,
         private readonly ?bool $tentative = null,
+        private readonly ?bool $reservations = null,
     ) {
     }
 
@@ -38,5 +39,13 @@ class PlannerCapabilities
     public function supportsTentative(): bool
     {
         return $this->tentative ?? ($this->isPlannerInstalled() && method_exists(self::PLANNED_ACTIVITY, 'setTentative'));
+    }
+
+    /**
+     * Reserved time: hours held for something that is not a customer or project, offered by another plugin.
+     */
+    public function supportsReservations(): bool
+    {
+        return $this->reservations ?? ($this->isPlannerInstalled() && method_exists(self::PLANNED_ACTIVITY, 'setReservation'));
     }
 }

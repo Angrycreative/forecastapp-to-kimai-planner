@@ -8,6 +8,8 @@
     {{ target.customer.name }}{% if target.project %} <span class="text-secondary">/</span> {{ target.project.name }}{% endif %}
 {% elseif target.kind == 'time_off' %}
     <span class="badge bg-azure-lt">{{ 'forecast_import.time_off'|trans }}</span>
+{% elseif target.kind == 'reservation' %}
+    <span class="badge bg-purple-lt">{{ 'forecast_import.reserved_time'|trans }}</span> {{ forecast_import_reservation_name(target.reservation) }}
 {% else %}
     <span class="text-secondary">–</span>
 {% endif %}

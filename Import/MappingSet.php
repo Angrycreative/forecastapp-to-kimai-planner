@@ -20,7 +20,7 @@ final class MappingSet
     /**
      * @param array<int, Target> $people        by Forecast person id: a user or skip
      * @param array<int, Target> $placeholders  by Forecast placeholder id: a user or skip
-     * @param array<int, Target> $projects      by Forecast project id: work, time off or skip
+     * @param array<int, Target> $projects      by Forecast project id: work, time off, reserved time or skip
      * @param list<string> $tentativeTags       project tags that make an assignment tentative
      */
     public function __construct(
