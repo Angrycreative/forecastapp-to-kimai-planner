@@ -442,10 +442,19 @@ final class PlanBuilderTest extends TestCase
         $plan = $this->build([
             $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => '2h a month']),
             $this->assignment(2, '2026-11-09', '2026-11-09', 3600),
-        ], mappings: $this->withComment('Old shop, 2h a month', new NoteOptions(true, true)), projectNotes: '2h a month');
+        ], mappings: $this->withComment("Old shop\n2h a month", new NoteOptions(true, true)), projectNotes: '2h a month');
 
-        self::assertSame('Old shop, 2h a month', $plan->assignments()[1]->parts[0]->comment);
-        self::assertSame('Old shop, 2h a month', $plan->assignments()[2]->parts[0]->comment);
+        self::assertSame("Old shop\n2h a month", $plan->assignments()[1]->parts[0]->comment);
+        self::assertSame("Old shop\n2h a month", $plan->assignments()[2]->parts[0]->comment);
+    }
+
+    public function testAShortNoteInsideALongerLineIsKept(): void
+    {
+        $plan = $this->build([
+            $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => 'old']),
+        ], mappings: $this->withComment('Support for the old shop', new NoteOptions(false, true)));
+
+        self::assertSame("Support for the old shop\nold", $plan->assignments()[1]->parts[0]->comment);
     }
 
     public function testTheDefaultsKeepEarlierFingerprints(): void
