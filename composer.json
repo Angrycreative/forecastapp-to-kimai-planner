@@ -3,7 +3,7 @@
   "description": "Import people's planning, time off and tentative work from Harvest Forecast into the Kimai Weekly Planner (PlannerBundle), so a team can leave Forecast without re-entering its plan.",
   "homepage": "https://github.com/Angrycreative/forecastapp-to-kimai-planner",
   "type": "kimai-plugin",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "require": {
     "php": ">=8.2",
     "kimai/kimai": ">=2.60.0"
@@ -27,7 +27,7 @@
     "kimai": {
       "require": 26000,
       "name": "ForecastImport",
-      "version": "0.3.1"
+      "version": "0.4.0"
     }
   }
 }

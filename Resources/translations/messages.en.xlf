@@ -234,6 +234,10 @@
                 <source>forecast_import.reservation_help</source>
                 <target>Planned like project work, but for something that is not a customer or project. Set up under Administration &gt; Reserved time.</target>
             </trans-unit>
+            <trans-unit id="forecast_import.comment_help">
+                <source>forecast_import.comment_help</source>
+                <target>Optional. Every planning imported from this Forecast project gets it as its comment, ahead of the assignment's own notes. Useful when it goes to a broad project such as an internal one.</target>
+            </trans-unit>
             <trans-unit id="forecast_import.reserved_time">
                 <source>forecast_import.reserved_time</source>
                 <target>Reserved time</target>

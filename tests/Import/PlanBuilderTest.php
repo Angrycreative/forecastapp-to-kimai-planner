@@ -373,4 +373,36 @@ final class PlanBuilderTest extends TestCase
         // what imports made before reserved time existed have stored: the fingerprint without a reservation
         self::assertSame(sha1((string) json_encode(['2026-11-09', '2026-11-10', 3600, null, false, $this->user->getId(), $this->customer->getId(), $this->project->getId(), false, false, 1.0])), $work);
     }
+
+    public function testTheMappingsCommentComesAheadOfTheNotes(): void
+    {
+        $mappings = new MappingSet(
+            [self::PERSON => Target::user($this->user)],
+            [],
+            [self::PROJECT => Target::work($this->customer, $this->project)->withComment('Support for the old shop')],
+        );
+        $plan = $this->build(
+            [
+                $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => 'Sprint 4']),
+                $this->assignment(2, '2026-11-09', '2026-11-09', 3600),
+            ],
+            mappings: $mappings
+        );
+
+        self::assertSame("Support for the old shop\nSprint 4", $plan->assignments()[1]->parts[0]->comment);
+        self::assertSame('Support for the old shop', $plan->assignments()[2]->parts[0]->comment);
+    }
+
+    public function testChangingTheMappingsCommentChangesTheFingerprint(): void
+    {
+        $without = $this->build([$this->assignment(1, '2026-11-09', '2026-11-09', 3600)])->assignments()[1]->fingerprint;
+        $mappings = new MappingSet(
+            [self::PERSON => Target::user($this->user)],
+            [],
+            [self::PROJECT => Target::work($this->customer, $this->project)->withComment('Support for the old shop')],
+        );
+        $with = $this->build([$this->assignment(1, '2026-11-09', '2026-11-09', 3600)], mappings: $mappings)->assignments()[1]->fingerprint;
+
+        self::assertNotSame($without, $with);
+    }
 }
