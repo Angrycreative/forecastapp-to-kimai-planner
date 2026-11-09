@@ -91,6 +91,18 @@ final class ForecastDataTest extends TestCase
         self::assertSame('#404', $data->personName(404));
     }
 
+    public function testCollectsTheDistinctNotesOfEachProjectsAssignments(): void
+    {
+        $collections = self::collections();
+        $collections['assignments'][0]['notes'] = ' Sprint 4 ';
+        $collections['assignments'][2]['notes'] = 'Sprint 4';
+        $collections['assignments'][] = ['id' => 103, 'project_id' => 10, 'notes' => 'Launch'] + $collections['assignments'][1];
+        $collections['assignments'][1]['notes'] = '  ';
+        $data = ForecastData::fromForecast('1', new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-12-31'), new \DateTimeImmutable(), $collections);
+
+        self::assertSame([10 => ['Sprint 4', 'Launch']], $data->assignmentNotes());
+    }
+
     /**
      * @return array<string, list<array<string, mixed>>>
      */

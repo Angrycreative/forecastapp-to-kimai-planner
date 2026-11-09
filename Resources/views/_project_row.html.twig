@@ -12,6 +12,7 @@
         {% if row.archived %}<span class="badge bg-secondary-lt ms-1">{{ 'forecast_import.archived'|trans }}</span>{% endif %}
         {% for tag in row.tags %}<span class="badge bg-secondary-lt ms-1">{{ tag }}</span>{% endfor %}
     </td>
+    <td>{{ include('@ForecastImport/_notes.html.twig') }}</td>
     <td>{{ include('@ForecastImport/_planned.html.twig', {'planned': row.planned}) }}</td>
     <td>
         {% if row.target is null and best %}
