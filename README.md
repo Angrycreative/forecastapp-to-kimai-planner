@@ -1,6 +1,6 @@
 # Forecast import for the Kimai Weekly Planner
 
-Moving from [Harvest Forecast](https://www.getharvest.com/forecast) to [Kimai](https://www.kimai.org/)? This plugin brings your team's plan with you. A super admin reads Forecast once, decides where its people and projects belong in Kimai, checks a preview and imports the planning, time off and tentative work into the [Weekly Planner](https://github.com/happiness/PlannerBundle). Nobody has to re-enter the coming months by hand, and you can run it again until the day you switch Forecast off.
+Moving from [Harvest Forecast](https://www.getharvest.com/forecast) to [Kimai](https://www.kimai.org/)? This plugin brings your team's plan with you. Whoever runs the import (super admins, unless you give the permission to others) reads Forecast once, decides where its people and projects belong in Kimai, checks a preview and imports the planning, time off and tentative work into the [Weekly Planner](https://github.com/happiness/PlannerBundle). Nobody has to re-enter the coming months by hand, and you can run it again until the day you switch Forecast off.
 
 Built by [Angry Creative](https://angrycreative.se) for our own move from Forecast to Kimai, and shared so yours is easier.
 
@@ -36,7 +36,7 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 2. Create its database tables: `bin/console kimai:plugins --install`
 3. Clear the cache: `bin/console cache:clear`
 
-Super admins get the `forecast_import` permission and find **Forecast import** under **System**. Grant the permission to other roles under **System > Role permissions** if you need to, keeping in mind that importing writes planning for everyone.
+Super admins get the `import_forecast_planner` permission and find **Forecast import** under **System**. Anyone else who should run the import can be given it under **System > Role permissions**, where it is listed in the **Weekly Planner** section. Give it with care: importing writes planning for everyone. The console command needs no permission, since it runs with server access.
 
 ## Using it
 

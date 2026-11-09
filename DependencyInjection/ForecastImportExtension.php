@@ -26,17 +26,19 @@ class ForecastImportExtension extends AbstractPluginExtension implements Prepend
     }
 
     /**
-     * One permission, held by super admins only: importing writes planning for everyone.
+     * One permission, held by super admins by default because importing writes planning for everyone. Any role can be
+     * given it under System > Role permissions. The name ends in "_planner" so it is listed in the Weekly Planner's
+     * section there, next to the permissions of the planner it writes to.
      */
     public function prepend(ContainerBuilder $container): void
     {
         $container->prependExtensionConfig('kimai', [
             'permissions' => [
                 'sets' => [
-                    'FORECAST_IMPORT' => ['forecast_import'],
+                    'FORECAST_IMPORT' => ['import_forecast_planner'],
                 ],
                 'roles' => [
-                    'ROLE_SUPER_ADMIN' => ['forecast_import'],
+                    'ROLE_SUPER_ADMIN' => ['import_forecast_planner'],
                 ],
             ],
         ]);

@@ -34,7 +34,7 @@ final class MenuSubscriber implements EventSubscriberInterface
 
     public function onMenuConfigure(ConfigureMainMenuEvent $event): void
     {
-        if (!$this->security->isGranted('forecast_import')) {
+        if (!$this->security->isGranted('import_forecast_planner')) {
             return;
         }
 
