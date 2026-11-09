@@ -232,7 +232,7 @@
             </trans-unit>
             <trans-unit id="forecast_import.reservation_help">
                 <source>forecast_import.reservation_help</source>
-                <target>Planned like project work, but for something that is not a customer or project. Set up in System &gt; Reserved time.</target>
+                <target>Planned like project work, but for something that is not a customer or project. Set up under Administration &gt; Reserved time.</target>
             </trans-unit>
             <trans-unit id="forecast_import.reserved_time">
                 <source>forecast_import.reserved_time</source>
