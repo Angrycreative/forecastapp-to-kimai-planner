@@ -11,7 +11,7 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 - **Suggests where each project goes.** Project names rarely survive a move unchanged ("Acme / Acme Marketing" in Forecast, "Acme Ltd / Acme Marketing Services" in Kimai), so the plugin scores how alike the customer and project names are and suggests the closest Kimai project. Strong suggestions are ticked for you to accept in one go; you confirm or change the rest. A Forecast project can also go to a customer without a project. The list shows each project's Forecast notes and the notes on its assignments, to help you decide.
 - **Brings time off across as time off.** Forecast's "Time Off" project becomes planner time off, whole days included.
 - **Keeps internal time out of your projects.** Forecast projects that only hold space in someone's schedule, such as an agency buffer or tech leading, can go to the planner's reserved time instead of a Kimai project, so nobody can log time to them. A Forecast project with the same name as one of the planner's reservations is mapped to it automatically. Reserved time is never tentative.
-- **Keeps the context when a project goes somewhere broad.** An assignment's Forecast notes become its planning's comment. A project mapping can add a comment of its own, put ahead of those notes on every planning imported through it, so an old Forecast project sent to a general internal project still says what the time is for.
+- **Keeps the context when a project goes somewhere broad.** Each assignment's Forecast notes become its planning's comment, and a project's own Forecast notes can too: you choose both when reading Forecast (assignment notes on, project notes off unless you tick them). A project mapping can add a comment of its own, put ahead of those notes on every planning imported through it, so an old Forecast project sent to a general internal project still says what the time is for.
 - **Lets you say what "tentative" means.** Forecast has no tentative flag, so you choose project tags (such as "not signed") whose assignments are imported as tentative planning.
 - **Respects working days.** Forecast books working days only; a planning in Kimai covers every day between its dates. Assignments are cut into runs of each person's working days, from their Kimai work contract and, where the planner knows them, public holidays. For someone without a work contract in Kimai yet, Forecast's own working days for that person are used, and the preview says so. When an assignment is cut around days off, its parts form one series in the planner, as they would if you had planned it there; a planning in one piece is an ordinary planning.
 - **Shows you everything before it writes anything.** Reading Forecast only copies its plan in for review, and says what it found and what changed since the previous read. The preview then lists, per person, every assignment with its dates, hours and what the import will do with it (new, changed, to remove or already up to date), plus anything left out and why. Only "Import planning" on that last step writes to the planner.
@@ -44,7 +44,7 @@ Super admins get the `import_forecast_planner` permission and find **Forecast im
 
 A step bar on every page shows where you are and how far each step is, and a collapsible guide on the first step explains each one.
 
-1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created. Reading changes nothing in the planner. The dates you chose stay in the form for the next read.
+1. **Read Forecast.** Enter the account ID (the number in `forecastapp.com/<account ID>/`), the token and the dates to import. Today onwards is usually right: nothing before the start date is created. Reading changes nothing in the planner. The dates you chose stay in the form for the next read, as do the two choices of which Forecast notes to bring along.
 2. **People.** Check the automatic matches and decide about anyone unmatched. Placeholders are skipped by default because the planner plans people, but you can give one to a user.
 3. **Projects.** Accept the ticked suggestions, then go through the rest. Unmapped projects are listed first. Internal Forecast projects can go to reserved time, when the planner offers any. Add a comment when the Kimai side alone would not say what the planning is for.
 4. **Tentative work.** Tick the tags that mean "not confirmed yet".
@@ -62,7 +62,7 @@ FORECAST_TOKEN=... bin/console kimai:forecast-import --fetch --account-id=123456
 bin/console kimai:forecast-import --accept-suggestions   # use the last data read, accept confident suggestions, import
 ```
 
-Options: `--fetch`, `--account-id`, `--begin` and `--end` (any date PHP understands, default today to a year ahead), `--accept-suggestions`, `--dry-run`.
+Options: `--fetch`, `--account-id`, `--begin` and `--end` (any date PHP understands, default today to a year ahead), `--accept-suggestions`, `--dry-run`, and `--assignment-notes` / `--project-notes` (`on` or `off`; saved for later runs and the screen, except with `--dry-run`).
 
 ## About the Forecast API
 

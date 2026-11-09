@@ -28,6 +28,7 @@ use KimaiPlugin\ForecastImportBundle\Import\Plan;
 use KimaiPlugin\ForecastImportBundle\Import\Preview;
 use KimaiPlugin\ForecastImportBundle\Import\ReadSummary;
 use KimaiPlugin\ForecastImportBundle\Import\ProjectSuggester;
+use KimaiPlugin\ForecastImportBundle\Import\NoteOptions;
 use KimaiPlugin\ForecastImportBundle\Import\Target;
 use KimaiPlugin\ForecastImportBundle\Import\TokenVault;
 use KimaiPlugin\ForecastImportBundle\Repository\ImportedPlanningRepository;
@@ -64,7 +65,10 @@ final class ForecastImportController extends AbstractController
         $data = $this->import->data();
         // the dates of the last read, so reading again picks up where you were; today to a year ahead the first time
         $saved = $this->vault->saved();
+        $notes = $this->mappings->noteOptions();
         $form = $this->createForm(ConnectForm::class, [
+            'projectNotes' => $notes->projectNotes,
+            'assignmentNotes' => $notes->assignmentNotes,
             'accountId' => $data?->accountId ?? $saved?->getAccountId(),
             'begin' => $data !== null ? \DateTime::createFromImmutable($data->begin) : new \DateTime('today'),
             'end' => $data !== null ? \DateTime::createFromImmutable($data->end) : new \DateTime('today +12 months'),
@@ -93,6 +97,7 @@ final class ForecastImportController extends AbstractController
                         \DateTimeImmutable::createFromMutable($values['begin'])->setTime(0, 0),
                         \DateTimeImmutable::createFromMutable($values['end'])->setTime(0, 0),
                     );
+                    $this->mappings->saveNoteOptions(new NoteOptions((bool) $values['projectNotes'], (bool) $values['assignmentNotes']));
                     // a typed token is kept only once Forecast has accepted it, and only when asked to
                     if ($typed !== '') {
                         $values['remember'] ? $this->vault->save($credentials) : $this->vault->clear();

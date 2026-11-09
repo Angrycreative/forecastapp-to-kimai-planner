@@ -27,6 +27,9 @@ use Symfony\Contracts\Service\ResetInterface;
  */
 class MappingService implements ResetInterface
 {
+    private const PROJECT_NOTES = 'project_notes';
+    private const ASSIGNMENT_NOTES = 'assignment_notes';
+
     private ?ProjectSuggester $suggester = null;
 
     public function __construct(
@@ -36,7 +39,10 @@ class MappingService implements ResetInterface
     ) {
     }
 
-    public function mappingSet(ForecastData $data): MappingSet
+    /**
+     * @param NoteOptions|null $notes for this once instead of the saved ones (a dry run on the command line)
+     */
+    public function mappingSet(ForecastData $data, ?NoteOptions $notes = null): MappingSet
     {
         $people = [];
         $placeholders = [];
@@ -56,7 +62,27 @@ class MappingService implements ResetInterface
             }
         }
 
-        return new MappingSet($people, $placeholders, $projects, $this->tentativeTags());
+        return new MappingSet($people, $placeholders, $projects, $this->tentativeTags(), $notes ?? $this->noteOptions());
+    }
+
+    public function noteOptions(): NoteOptions
+    {
+        $saved = $this->repository->findByKind(Mapping::OPTION);
+        $on = static fn (string $key, bool $default): bool => isset($saved[$key]) ? $saved[$key]->getAction() === Mapping::ON : $default;
+        $defaults = new NoteOptions();
+
+        return new NoteOptions($on(self::PROJECT_NOTES, $defaults->projectNotes), $on(self::ASSIGNMENT_NOTES, $defaults->assignmentNotes));
+    }
+
+    public function saveNoteOptions(NoteOptions $notes): void
+    {
+        $mappings = [];
+        foreach ([self::PROJECT_NOTES => $notes->projectNotes, self::ASSIGNMENT_NOTES => $notes->assignmentNotes] as $key => $on) {
+            $mapping = $this->repository->findOrCreate(Mapping::OPTION, $key);
+            $mapping->markOption($on);
+            $mappings[] = $mapping;
+        }
+        $this->repository->save(...$mappings);
     }
 
     /**

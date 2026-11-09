@@ -21,7 +21,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Account, token and the dates to read. The token is kept, encrypted, only when "Remember" is ticked.
+ * Account, token, the dates to read and which Forecast notes to bring along. The token is kept, encrypted, only when
+ * "Remember" is ticked.
  */
 final class ConnectForm extends AbstractType
 {
@@ -52,6 +53,16 @@ final class ConnectForm extends AbstractType
         $builder->add('end', DatePickerType::class, [
             'label' => 'forecast_import.end',
             'constraints' => [new Assert\NotNull()],
+        ]);
+        $builder->add('assignmentNotes', CheckboxType::class, [
+            'label' => 'forecast_import.assignment_notes',
+            'help' => 'forecast_import.assignment_notes_help',
+            'required' => false,
+        ]);
+        $builder->add('projectNotes', CheckboxType::class, [
+            'label' => 'forecast_import.project_notes',
+            'help' => 'forecast_import.project_notes_help',
+            'required' => false,
         ]);
     }
 

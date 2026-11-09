@@ -236,7 +236,7 @@
             </trans-unit>
             <trans-unit id="forecast_import.comment_help">
                 <source>forecast_import.comment_help</source>
-                <target>Optional. Every planning imported from this Forecast project gets it as its comment, ahead of the assignment's own notes. Useful when it goes to a broad project such as an internal one.</target>
+                <target>Optional. Every planning imported from this Forecast project gets it as its comment, ahead of the Forecast notes you chose to bring along on the first step. Useful when it goes to a broad project such as an internal one.</target>
             </trans-unit>
             <trans-unit id="forecast_import.reserved_time">
                 <source>forecast_import.reserved_time</source>
@@ -665,6 +665,22 @@
             <trans-unit id="forecast_import.col_project">
                 <source>forecast_import.col_project</source>
                 <target>Project in Forecast</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.assignment_notes">
+                <source>forecast_import.assignment_notes</source>
+                <target>Bring assignment notes along</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.assignment_notes_help">
+                <source>forecast_import.assignment_notes_help</source>
+                <target>What was written on each Forecast assignment goes into the comment of its plannings.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.project_notes">
+                <source>forecast_import.project_notes</source>
+                <target>Bring project notes along</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.project_notes_help">
+                <source>forecast_import.project_notes_help</source>
+                <target>A Forecast project's own notes go into the comment of every planning imported from it. Changing either choice replaces the plannings it affects on the next import.</target>
             </trans-unit>
             <trans-unit id="forecast_import.col_notes">
                 <source>forecast_import.col_notes</source>

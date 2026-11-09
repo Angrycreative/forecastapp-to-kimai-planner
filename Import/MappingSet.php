@@ -13,7 +13,7 @@ namespace KimaiPlugin\ForecastImportBundle\Import;
 
 /**
  * The decisions for one import: where each Forecast person, placeholder and project goes, and which project tags mean
- * tentative work. Anything missing here is unmapped.
+ * tentative work, plus which Forecast notes to bring along. Anything missing here is unmapped.
  */
 final class MappingSet
 {
@@ -22,12 +22,14 @@ final class MappingSet
      * @param array<int, Target> $placeholders  by Forecast placeholder id: a user or skip
      * @param array<int, Target> $projects      by Forecast project id: work, time off, reserved time or skip
      * @param list<string> $tentativeTags       project tags that make an assignment tentative
+     * @param NoteOptions $notes                 which Forecast notes go into the plannings' comments
      */
     public function __construct(
         public readonly array $people = [],
         public readonly array $placeholders = [],
         public readonly array $projects = [],
         public readonly array $tentativeTags = [],
+        public readonly NoteOptions $notes = new NoteOptions(),
     ) {
     }
 
