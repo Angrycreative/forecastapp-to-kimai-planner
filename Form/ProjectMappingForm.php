@@ -17,6 +17,7 @@ use KimaiPlugin\ForecastImportBundle\Import\ReservationCatalogue;
 use KimaiPlugin\ForecastImportBundle\Import\Target;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -79,6 +80,12 @@ final class ProjectMappingForm extends AbstractType
             'label' => 'project',
             'required' => false,
             'activity_enabled' => false,
+        ]);
+        $builder->add('comment', TextareaType::class, [
+            'label' => 'comment',
+            'help' => 'forecast_import.comment_help',
+            'required' => false,
+            'attr' => ['rows' => 2, 'maxlength' => 1000],
         ]);
     }
 

@@ -52,4 +52,17 @@ final class TargetTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         Target::reservation('');
     }
+
+    public function testACommentIsTrimmedAndOnlyKeptWhereThereIsPlanning(): void
+    {
+        $target = Target::reservation('agency-buffer', true)->withComment("  Old retainer work \n");
+
+        self::assertSame('Old retainer work', $target->comment);
+        self::assertSame('agency-buffer', $target->reservation);
+        self::assertTrue($target->automatic);
+
+        self::assertSame('Leave', Target::timeOff()->withComment('Leave')->comment);
+        self::assertNull(Target::work(new Customer('Acme'))->withComment('   ')->comment);
+        self::assertNull(Target::skip()->withComment('Ignored')->comment);
+    }
 }

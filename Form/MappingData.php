@@ -28,6 +28,8 @@ final class MappingData
     public ?Customer $customer = null;
     public ?Project $project = null;
     public ?string $reservation = null;
+    #[Assert\Length(max: 1000)]
+    public ?string $comment = null;
 
     public static function fromTarget(?Target $target, string $default): self
     {
@@ -37,11 +39,17 @@ final class MappingData
         $data->customer = $target?->customer;
         $data->project = $target?->project;
         $data->reservation = $target?->reservation;
+        $data->comment = $target?->comment;
 
         return $data;
     }
 
     public function toTarget(): Target
+    {
+        return $this->baseTarget()->withComment($this->comment);
+    }
+
+    private function baseTarget(): Target
     {
         return match ($this->action) {
             Target::USER => Target::user($this->user ?? throw new \LogicException('validated')),

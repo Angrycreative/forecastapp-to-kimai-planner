@@ -16,3 +16,6 @@
 {% if target is not null and target.automatic %}
     <span class="badge bg-secondary-lt ms-1" title="{{ 'forecast_import.automatic_help'|trans }}">{{ 'forecast_import.automatic'|trans }}</span>
 {% endif %}
+{% if target is not null and target.comment %}
+    <div class="text-secondary small" title="{{ target.comment }}"><i class="far fa-comment me-1"></i>{{ target.comment|u.truncate(80, '…') }}</div>
+{% endif %}

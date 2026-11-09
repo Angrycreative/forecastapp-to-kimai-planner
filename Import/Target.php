@@ -17,7 +17,8 @@ use App\Entity\User;
 
 /**
  * Where a Forecast person, placeholder or project goes in Kimai: a user, a customer (and optionally a project), time
- * off, reserved time (the planner's reservations, by key), or nowhere.
+ * off, reserved time (the planner's reservations, by key), or nowhere. Planning that goes somewhere can carry a comment,
+ * which every planning imported through it gets, ahead of the assignment's own notes.
  */
 final class Target
 {
@@ -34,6 +35,7 @@ final class Target
         public readonly ?Project $project = null,
         public readonly bool $automatic = false,
         public readonly ?string $reservation = null,
+        public readonly ?string $comment = null,
     ) {
     }
 
@@ -71,6 +73,17 @@ final class Target
     public static function skip(): self
     {
         return new self(self::SKIP);
+    }
+
+    /**
+     * The same target with this comment; blank means none. People and skipped projects have no planning to put it on.
+     */
+    public function withComment(?string $comment): self
+    {
+        $comment = trim((string) $comment);
+        $comment = $comment === '' || $this->kind === self::USER || $this->kind === self::SKIP ? null : $comment;
+
+        return new self($this->kind, $this->user, $this->customer, $this->project, $this->automatic, $this->reservation, $comment);
     }
 
     public function isSkip(): bool

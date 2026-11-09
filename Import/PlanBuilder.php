@@ -104,7 +104,9 @@ final class PlanBuilder
             }
 
             $hours = $this->hoursPerDay($data, $assignment, $timeOff);
-            $comment = trim((string) ($assignment['notes'] ?? ''));
+            // the mapping's comment first, so it reads as what the planning is for; the assignment's notes after it
+            $notes = trim((string) ($assignment['notes'] ?? ''));
+            $comment = implode("\n", array_filter([(string) $target->comment, $notes], static fn (string $line): bool => $line !== ''));
             $comment = $comment === '' ? null : $comment;
 
             $activeOnDaysOff = (bool) ($assignment['active_on_days_off'] ?? false);
