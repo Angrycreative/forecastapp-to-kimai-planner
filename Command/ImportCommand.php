@@ -16,6 +16,7 @@ use KimaiPlugin\ForecastImportBundle\Forecast\ForecastCredentials;
 use KimaiPlugin\ForecastImportBundle\Import\ForecastImport;
 use KimaiPlugin\ForecastImportBundle\Import\ImportResult;
 use KimaiPlugin\ForecastImportBundle\Import\MappingService;
+use KimaiPlugin\ForecastImportBundle\Import\NoteOptions;
 use KimaiPlugin\ForecastImportBundle\Import\Plan;
 use KimaiPlugin\ForecastImportBundle\Import\TokenVault;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -49,6 +50,8 @@ final class ImportCommand extends Command
             ->addOption('end', null, InputOption::VALUE_REQUIRED, 'Last day to import, with --fetch', 'today +12 months')
             ->addOption('accept-suggestions', null, InputOption::VALUE_NONE, 'Map unmapped projects to their confident suggestions')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would happen without writing anything')
+            ->addOption('assignment-notes', null, InputOption::VALUE_REQUIRED, 'on or off: put each assignment\'s Forecast notes in its plannings\' comments (saved, as on the import screen; default: the saved setting, on at first)')
+            ->addOption('project-notes', null, InputOption::VALUE_REQUIRED, 'on or off: put each project\'s own Forecast notes in its plannings\' comments (saved likewise; off at first)')
             ->setHelp(<<<'HELP'
                 The Harvest personal access token is read from the FORECAST_TOKEN environment variable, else the token
                 saved (encrypted) on the import screen is used, else it is asked for without echoing it. The command
@@ -106,6 +109,24 @@ final class ImportCommand extends Command
         }
 
         $dryRun = (bool) $input->getOption('dry-run');
+        $notes = null;
+        if ($input->getOption('assignment-notes') !== null || $input->getOption('project-notes') !== null) {
+            $saved = $this->mappings->noteOptions();
+            try {
+                $notes = new NoteOptions(
+                    $this->onOff($input->getOption('project-notes'), $saved->projectNotes),
+                    $this->onOff($input->getOption('assignment-notes'), $saved->assignmentNotes),
+                );
+            } catch (\InvalidArgumentException $exception) {
+                $io->error($exception->getMessage());
+
+                return Command::FAILURE;
+            }
+            if (!$dryRun) {
+                // kept, so the screen and later runs bring the same notes along and nothing is replaced back and forth
+                $this->mappings->saveNoteOptions($notes);
+            }
+        }
         if ($input->getOption('accept-suggestions')) {
             $accepted = $this->mappings->acceptSuggestions($data, null, save: !$dryRun);
             $io->note($dryRun
@@ -113,13 +134,23 @@ final class ImportCommand extends Command
                 : \sprintf('%d project suggestions accepted.', $accepted));
         }
 
-        $plan = $this->import->plan($data);
+        $plan = $this->import->plan($data, $notes);
         $this->printProblems($io, $plan);
 
-        $result = $dryRun ? $this->import->preview($data) : $this->import->import($data);
+        $result = $dryRun ? $this->import->preview($data, $notes) : $this->import->import($data);
         $this->printResult($io, $result, $plan);
 
         return Command::SUCCESS;
+    }
+
+    private function onOff(mixed $value, bool $default): bool
+    {
+        return match ($value) {
+            null => $default,
+            'on' => true,
+            'off' => false,
+            default => throw new \InvalidArgumentException(\sprintf('Use on or off, not "%s".', (string) $value)),
+        };
     }
 
     private function printProblems(SymfonyStyle $io, Plan $plan): void

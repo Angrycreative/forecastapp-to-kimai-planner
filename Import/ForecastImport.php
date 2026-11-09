@@ -52,14 +52,14 @@ class ForecastImport
         return $this->snapshots->latest()?->getData();
     }
 
-    public function plan(ForecastData $data): Plan
+    public function plan(ForecastData $data, ?NoteOptions $notes = null): Plan
     {
-        return $this->planBuilder->build($data, $this->mappings->mappingSet($data));
+        return $this->planBuilder->build($data, $this->mappings->mappingSet($data, $notes));
     }
 
-    public function preview(ForecastData $data): ImportResult
+    public function preview(ForecastData $data, ?NoteOptions $notes = null): ImportResult
     {
-        return $this->importer->import($this->plan($data), true);
+        return $this->importer->import($this->plan($data, $notes), true);
     }
 
     public function import(ForecastData $data): ImportResult

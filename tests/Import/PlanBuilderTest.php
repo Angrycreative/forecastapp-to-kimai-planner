@@ -16,6 +16,7 @@ use App\Entity\Project;
 use App\Entity\User;
 use KimaiPlugin\ForecastImportBundle\Forecast\ForecastData;
 use KimaiPlugin\ForecastImportBundle\Import\MappingSet;
+use KimaiPlugin\ForecastImportBundle\Import\NoteOptions;
 use KimaiPlugin\ForecastImportBundle\Import\Plan;
 use KimaiPlugin\ForecastImportBundle\Import\PlanBuilder;
 use KimaiPlugin\ForecastImportBundle\Import\PlannerCapabilities;
@@ -280,6 +281,7 @@ final class PlanBuilderTest extends TestCase
         string $rangeBegin = '2026-11-09',
         bool $contract = true,
         bool $reservations = true,
+        ?string $projectNotes = null,
     ): Plan {
         $data = ForecastData::fromForecast('123', new \DateTimeImmutable($rangeBegin), new \DateTimeImmutable('2027-11-08'), new \DateTimeImmutable(), [
             'people' => [
@@ -289,7 +291,7 @@ final class PlanBuilderTest extends TestCase
             'placeholders' => [['id' => 5, 'name' => 'Designer', 'archived' => false]],
             'clients' => [['id' => 7, 'name' => 'Acme']],
             'projects' => [
-                ['id' => self::PROJECT, 'name' => 'Webshop', 'client_id' => 7, 'tags' => $tags, 'archived' => false],
+                ['id' => self::PROJECT, 'name' => 'Webshop', 'client_id' => 7, 'tags' => $tags, 'archived' => false, 'notes' => $projectNotes],
                 ['id' => 11, 'name' => 'Other', 'client_id' => 7, 'tags' => [], 'archived' => false],
                 ['id' => self::TIME_OFF, 'name' => 'Time Off', 'client_id' => null, 'tags' => [], 'archived' => false],
             ],
@@ -404,5 +406,65 @@ final class PlanBuilderTest extends TestCase
         $with = $this->build([$this->assignment(1, '2026-11-09', '2026-11-09', 3600)], mappings: $mappings)->assignments()[1]->fingerprint;
 
         self::assertNotSame($without, $with);
+    }
+
+    public function testTheProjectsNotesComeBetweenTheMappingsCommentAndTheAssignmentsNotesWhenChosen(): void
+    {
+        $plan = $this->build([
+            $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => 'Sprint 4']),
+        ], mappings: $this->withComment('Support for the old shop', new NoteOptions(true, true)), projectNotes: " 2h a month \n");
+
+        self::assertSame("Support for the old shop\n2h a month\nSprint 4", $plan->assignments()[1]->parts[0]->comment);
+    }
+
+    public function testByDefaultOnlyTheAssignmentsNotesComeAlong(): void
+    {
+        $plan = $this->build([
+            $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => 'Sprint 4']),
+            $this->assignment(2, '2026-11-09', '2026-11-09', 3600),
+        ], projectNotes: '2h a month');
+
+        self::assertSame('Sprint 4', $plan->assignments()[1]->parts[0]->comment);
+        self::assertNull($plan->assignments()[2]->parts[0]->comment);
+    }
+
+    public function testAssignmentNotesCanBeLeftOut(): void
+    {
+        $plan = $this->build([
+            $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => 'Sprint 4']),
+        ], mappings: $this->withComment(null, new NoteOptions(false, false)), projectNotes: '2h a month');
+
+        self::assertNull($plan->assignments()[1]->parts[0]->comment);
+    }
+
+    public function testNotesAlreadySaidAreNotRepeated(): void
+    {
+        $plan = $this->build([
+            $this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => '2h a month']),
+            $this->assignment(2, '2026-11-09', '2026-11-09', 3600),
+        ], mappings: $this->withComment('Old shop, 2h a month', new NoteOptions(true, true)), projectNotes: '2h a month');
+
+        self::assertSame('Old shop, 2h a month', $plan->assignments()[1]->parts[0]->comment);
+        self::assertSame('Old shop, 2h a month', $plan->assignments()[2]->parts[0]->comment);
+    }
+
+    public function testTheDefaultsKeepEarlierFingerprints(): void
+    {
+        $assignments = [$this->assignment(1, '2026-11-09', '2026-11-09', 3600, ['notes' => 'Sprint 4'])];
+        $default = $this->build($assignments)->assignments()[1]->fingerprint;
+
+        self::assertSame($default, $this->build($assignments, projectNotes: '2h a month')->assignments()[1]->fingerprint);
+        self::assertNotSame($default, $this->build($assignments, mappings: $this->withComment(null, new NoteOptions(false, false)))->assignments()[1]->fingerprint);
+    }
+
+    private function withComment(?string $comment, NoteOptions $notes): MappingSet
+    {
+        return new MappingSet(
+            [self::PERSON => Target::user($this->user)],
+            [],
+            [self::PROJECT => Target::work($this->customer, $this->project)->withComment($comment)],
+            [],
+            $notes,
+        );
     }
 }

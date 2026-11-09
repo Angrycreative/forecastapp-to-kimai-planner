@@ -18,7 +18,7 @@ use App\Entity\User;
 /**
  * Where a Forecast person, placeholder or project goes in Kimai: a user, a customer (and optionally a project), time
  * off, reserved time (the planner's reservations, by key), or nowhere. Planning that goes somewhere can carry a comment,
- * which every planning imported through it gets, ahead of the assignment's own notes.
+ * which every planning imported through it gets, ahead of the Forecast project's and the assignment's own notes.
  */
 final class Target
 {

@@ -19,8 +19,8 @@ use Doctrine\ORM\Mapping as ORM;
 use KimaiPlugin\ForecastImportBundle\Import\Target;
 
 /**
- * One decision made while preparing the import: where a Forecast person, placeholder or project goes, or whether a
- * project tag means tentative work. Kept between runs, so importing again picks up where the last run stopped.
+ * One decision made while preparing the import: where a Forecast person, placeholder or project goes, whether a
+ * project tag means tentative work, or one of the import's settings. Kept between runs, so importing again picks up where the last run stopped.
  */
 #[ORM\Table(name: 'kimai2_forecast_import_mapping')]
 #[ORM\UniqueConstraint(name: 'UNIQ_FORECAST_IMPORT_MAPPING', columns: ['kind', 'forecast_key'])]
@@ -35,6 +35,10 @@ class Mapping
     public const PLACEHOLDER = 'placeholder';
     public const PROJECT = 'project';
     public const TAG = 'tag';
+    /** An import setting rather than a Forecast record: the key names the setting, the action is on or off. */
+    public const OPTION = 'option';
+    public const ON = 'on';
+    public const OFF = 'off';
 
     /** The tag marks tentative work. */
     public const TENTATIVE = 'tentative';
@@ -63,7 +67,7 @@ class Mapping
     #[ORM\Column(name: 'reservation_key', type: Types::STRING, length: 64, nullable: true)]
     private ?string $reservation = null;
 
-    /** Put on every planning imported through this decision, ahead of the assignment's own notes. */
+    /** Put on every planning imported through this decision, ahead of the Forecast project's and the assignment's own notes. */
     #[ORM\Column(name: 'comment', type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
@@ -137,6 +141,12 @@ class Mapping
         $this->reservation = $target->reservation;
         $this->comment = $target->comment;
         $this->hadProject = $target->project !== null;
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function markOption(bool $on): void
+    {
+        $this->action = $on ? self::ON : self::OFF;
         $this->updatedAt = new \DateTimeImmutable();
     }
 

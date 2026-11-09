@@ -104,10 +104,11 @@ final class PlanBuilder
             }
 
             $hours = $this->hoursPerDay($data, $assignment, $timeOff);
-            // the mapping's comment first, so it reads as what the planning is for; the assignment's notes after it
-            $notes = trim((string) ($assignment['notes'] ?? ''));
-            $comment = implode("\n", array_filter([(string) $target->comment, $notes], static fn (string $line): bool => $line !== ''));
-            $comment = $comment === '' ? null : $comment;
+            $comment = $this->comment(
+                $target->comment,
+                $mappings->notes->projectNotes ? (string) ($project['notes'] ?? '') : null,
+                $mappings->notes->assignmentNotes ? (string) ($assignment['notes'] ?? '') : null,
+            );
 
             $activeOnDaysOff = (bool) ($assignment['active_on_days_off'] ?? false);
             $ranges = $activeOnDaysOff ? [[$begin, $end]] : $this->workingRuns($data, $assignment, $user, $begin, $end, $plan);
@@ -152,6 +153,30 @@ final class PlanBuilder
         }
 
         return $plan;
+    }
+
+    /**
+     * A planning's comment: the mapping's comment first, so it reads as what the planning is for, then the Forecast
+     * project's notes and the assignment's own, as far as they are imported. Blank parts and parts already said earlier (a project note pasted into
+     * the mapping comment, say) are left out.
+     */
+    private function comment(?string ...$parts): ?string
+    {
+        $lines = [];
+        foreach ($parts as $part) {
+            $part = trim((string) $part);
+            if ($part === '') {
+                continue;
+            }
+            foreach ($lines as $line) {
+                if (str_contains($line, $part)) {
+                    continue 2;
+                }
+            }
+            $lines[] = $part;
+        }
+
+        return $lines === [] ? null : implode("\n", $lines);
     }
 
     /**
