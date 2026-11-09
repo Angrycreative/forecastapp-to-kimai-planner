@@ -65,8 +65,12 @@ final class Version20261106000000 extends AbstractMigration
             $table->setPrimaryKey(['id']);
             $table->addIndex(['forecast_assignment_id'], 'IDX_FORECAST_IMPORT_ASSIGNMENT');
             $table->addUniqueIndex(['planned_activity_id'], 'UNIQ_FORECAST_IMPORT_ACTIVITY');
-            // a planning deleted in Kimai keeps its link, so the import remembers it and does not bring it back
-            $table->addForeignKeyConstraint('kimai2_planned_activities', ['planned_activity_id'], ['id'], ['onDelete' => 'SET NULL'], 'FK_FORECAST_IMPORT_ACTIVITY');
+            // a planning deleted in Kimai keeps its link, so the import remembers it and does not bring it back.
+            // Kimai installs plugins in alphabetical order, so the planner's table may not exist yet: then
+            // Version20261109000000 adds the key once it does.
+            if ($schema->hasTable('kimai2_planned_activities')) {
+                $table->addForeignKeyConstraint('kimai2_planned_activities', ['planned_activity_id'], ['id'], ['onDelete' => 'SET NULL'], 'FK_FORECAST_IMPORT_ACTIVITY');
+            }
         }
     }
 

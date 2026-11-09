@@ -33,7 +33,7 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 ## Installation
 
 1. Copy or clone the plugin into `var/plugins/ForecastImportBundle` (the directory name matters).
-2. Create its database tables: `bin/console kimai:plugins --install`
+2. Create its database tables: `bin/console kimai:plugins --install`. If you install the Weekly Planner at the same time, run it twice. Kimai installs plugins in alphabetical order, so the first run creates this plugin's tables before the planner's and reports that it is not finished. The second run links the two.
 3. Clear the cache: `bin/console cache:clear`
 
 Super admins get the `import_forecast_planner` permission and find **Forecast import** under **System**. Anyone else who should run the import can be given it under **System > Role permissions**, where it is listed in the **Weekly Planner** section. Give it with care: importing writes planning for everyone. The console command needs no permission, since it runs with server access.
