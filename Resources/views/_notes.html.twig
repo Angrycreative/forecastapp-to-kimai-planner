@@ -1,0 +1,23 @@
+{# A Forecast project's own notes and the notes on its assignments: short in the list, in full in the dialog. #}
+{% set full = full ?? false %}
+{% if row.notes is null and row.assignmentNotes is empty %}
+    {% if not full %}<span class="text-secondary">–</span>{% endif %}
+{% elseif full %}
+    <div class="mb-3">
+        <div class="form-label">{{ 'forecast_import.col_notes'|trans }}</div>
+        {% if row.notes %}<div class="text-secondary mb-1" style="white-space: pre-line">{{ row.notes }}</div>{% endif %}
+        {% if row.assignmentNotes is not empty %}
+            <ul class="list-unstyled text-secondary small mb-0">
+                {% for note in row.assignmentNotes %}<li><i class="far fa-comment me-1"></i>{{ note }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% else %}
+    {% if row.notes %}<div class="small" title="{{ row.notes }}">{{ row.notes|u.truncate(100, '…') }}</div>{% endif %}
+    {% for note in row.assignmentNotes|slice(0, 2) %}
+        <div class="text-secondary small" title="{{ note }}"><i class="far fa-comment me-1"></i>{{ note|u.truncate(60, '…') }}</div>
+    {% endfor %}
+    {% if row.assignmentNotes|length > 2 %}
+        <div class="text-secondary small" title="{{ row.assignmentNotes|slice(2)|join("\n") }}">{{ 'forecast_import.more_notes'|trans({'%count%': row.assignmentNotes|length - 2}) }}</div>
+    {% endif %}
+{% endif %}

@@ -257,6 +257,7 @@ final class ForecastImportController extends AbstractController
             'title' => $row['name'],
             'subtitle' => $row['client'],
             'assignments' => $row['assignments'],
+            'notesRow' => $row,
             'back' => $this->generateUrl('forecast_import_projects'),
             'resetUrl' => $this->generateUrl('forecast_import_reset', ['kind' => Mapping::PROJECT, 'id' => $id]),
         ]);

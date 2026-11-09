@@ -120,6 +120,7 @@ class MappingService implements ResetInterface
     {
         $counts = $data->assignmentCounts()['projects'];
         $planned = $data->plannedTotals()['projects'];
+        $assignmentNotes = $data->assignmentNotes();
         $saved = $this->repository->findByKind(Mapping::PROJECT);
 
         $rows = [];
@@ -147,6 +148,8 @@ class MappingService implements ResetInterface
                 'name' => $name,
                 'tags' => array_values(array_map('strval', (array) ($project['tags'] ?? []))),
                 'archived' => (bool) ($project['archived'] ?? false),
+                'notes' => trim((string) ($project['notes'] ?? '')) === '' ? null : trim((string) $project['notes']),
+                'assignmentNotes' => $assignmentNotes[$id] ?? [],
                 'assignments' => $count,
                 'planned' => $planned[$id] ?? null,
                 'target' => $target,

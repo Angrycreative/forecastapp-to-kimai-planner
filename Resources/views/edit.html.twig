@@ -7,6 +7,7 @@
             <p class="text-secondary">
                 {% if subtitle %}{{ subtitle }} · {% endif %}{{ 'forecast_import.assignments_count'|trans({'%count%': assignments}) }}
             </p>
+            {% if notesRow is defined %}{{ include('@ForecastImport/_notes.html.twig', {'row': notesRow, 'full': true}) }}{% endif %}
             {{ form_widget(form) }}
         {% endblock %}
     {% endembed %}

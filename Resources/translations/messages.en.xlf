@@ -666,6 +666,14 @@
                 <source>forecast_import.col_project</source>
                 <target>Project in Forecast</target>
             </trans-unit>
+            <trans-unit id="forecast_import.col_notes">
+                <source>forecast_import.col_notes</source>
+                <target>Forecast notes</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.more_notes">
+                <source>forecast_import.more_notes</source>
+                <target>{1}and 1 more note|]1,Inf[and %count% more notes</target>
+            </trans-unit>
             <trans-unit id="forecast_import.col_planned">
                 <source>forecast_import.col_planned</source>
                 <target>Planned in Forecast</target>

@@ -194,6 +194,30 @@ final class ForecastData
     }
 
     /**
+     * The distinct notes on each project's assignments, in the order Forecast lists them, so whoever maps a project can
+     * see what its bookings were for.
+     *
+     * @return array<int, list<string>>
+     */
+    public function assignmentNotes(): array
+    {
+        $notes = [];
+        foreach ($this->assignments as $assignment) {
+            $note = trim((string) ($assignment['notes'] ?? ''));
+            if ($note === '') {
+                continue;
+            }
+            $projectId = (int) $assignment['project_id'];
+            $notes[$projectId] ??= [];
+            if (!\in_array($note, $notes[$projectId], true)) {
+                $notes[$projectId][] = $note;
+            }
+        }
+
+        return $notes;
+    }
+
+    /**
      * What is planned in Forecast per project and per person or placeholder within this range, for people to judge a
      * row by: hours (Forecast books working days only, so weekdays count unless an assignment is active on days off),
      * whole days for bookings without hours, the number of bookings and the first and last day.
