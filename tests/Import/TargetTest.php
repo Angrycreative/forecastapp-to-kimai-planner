@@ -39,4 +39,17 @@ final class TargetTest extends TestCase
         self::assertFalse($mappings->isTentative(['Live']));
         self::assertFalse((new MappingSet())->isTentative(['Not signed']));
     }
+
+    public function testReservedTimeNeedsItsKey(): void
+    {
+        $target = Target::reservation('agency-buffer', true);
+
+        self::assertSame(Target::RESERVATION, $target->kind);
+        self::assertSame('agency-buffer', $target->reservation);
+        self::assertTrue($target->automatic);
+        self::assertNull($target->customer);
+
+        $this->expectException(\InvalidArgumentException::class);
+        Target::reservation('');
+    }
 }

@@ -30,6 +30,8 @@ final class PlannedPart
         public readonly bool $timeOff,
         public readonly bool $tentative,
         public readonly ?string $comment,
+        public readonly ?string $reservation = null,
+        public readonly ?string $reservationName = null,
     ) {
     }
 }

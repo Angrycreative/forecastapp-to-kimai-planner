@@ -34,6 +34,7 @@ class Importer
         private readonly EntityManagerInterface $entityManager,
         private readonly ImportedPlanningRepository $links,
         private readonly PlannerCapabilities $capabilities,
+        private readonly ?ReservationCatalogue $reservations = null,
     ) {
     }
 
@@ -295,6 +296,8 @@ class Importer
             $activity->setEnd(new \DateTime($part->end->format('Y-m-d')));
             if ($part->timeOff) {
                 $activity->setTimeOff(true);
+            } elseif ($part->reservation !== null) {
+                $activity->setReservation($part->reservation);
             } else {
                 $activity->setCustomer($part->customer);
                 $activity->setProject($part->project);
@@ -325,14 +328,23 @@ class Importer
             'assignment' => $id,
             'userId' => $activity->getUser()?->getId(),
             'user' => (string) $activity->getUser()?->getDisplayName(),
-            'label' => $activity->getProject() !== null
-                ? $activity->getCustomer()?->getName() . ' / ' . $activity->getProject()->getName()
-                : (string) ($activity->getCustomer()?->getName() ?? ''),
+            'label' => $this->label($activity),
             'begin' => $begin,
             'end' => $end,
             'hoursPerDay' => $activity->getHoursPerDay(),
             'timeOff' => $this->capabilities->supportsTimeOff() && $activity->isTimeOff(),
         ];
+    }
+
+    private function label(PlannedActivity $activity): string
+    {
+        if ($this->capabilities->supportsReservations() && $activity->getReservation() !== null) {
+            return $this->reservations?->name($activity->getReservation()) ?? $activity->getReservation();
+        }
+
+        return $activity->getProject() !== null
+            ? $activity->getCustomer()?->getName() . ' / ' . $activity->getProject()->getName()
+            : (string) ($activity->getCustomer()?->getName() ?? '');
     }
 
     private function copy(PlannedActivity $activity): PlannedActivity
@@ -350,6 +362,9 @@ class Importer
         }
         if ($this->capabilities->supportsTentative()) {
             $copy->setTentative($activity->isTentative());
+        }
+        if ($this->capabilities->supportsReservations()) {
+            $copy->setReservation($activity->getReservation());
         }
 
         return $copy;

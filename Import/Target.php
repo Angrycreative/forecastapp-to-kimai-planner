@@ -17,13 +17,14 @@ use App\Entity\User;
 
 /**
  * Where a Forecast person, placeholder or project goes in Kimai: a user, a customer (and optionally a project), time
- * off, or nowhere.
+ * off, reserved time (the planner's reservations, by key), or nowhere.
  */
 final class Target
 {
     public const USER = 'user';
     public const WORK = 'work';
     public const TIME_OFF = 'time_off';
+    public const RESERVATION = 'reservation';
     public const SKIP = 'skip';
 
     private function __construct(
@@ -32,6 +33,7 @@ final class Target
         public readonly ?Customer $customer = null,
         public readonly ?Project $project = null,
         public readonly bool $automatic = false,
+        public readonly ?string $reservation = null,
     ) {
     }
 
@@ -52,6 +54,18 @@ final class Target
     public static function timeOff(bool $automatic = false): self
     {
         return new self(self::TIME_OFF, automatic: $automatic);
+    }
+
+    /**
+     * @param string $reservation the key of one of the planner's reservations
+     */
+    public static function reservation(string $reservation, bool $automatic = false): self
+    {
+        if ($reservation === '') {
+            throw new \InvalidArgumentException('A reservation needs its key.');
+        }
+
+        return new self(self::RESERVATION, automatic: $automatic, reservation: $reservation);
     }
 
     public static function skip(): self

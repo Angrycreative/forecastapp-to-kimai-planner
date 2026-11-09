@@ -125,7 +125,7 @@
                                     <tr>
                                         <td><span class="badge {{ {'created': 'bg-green-lt', 'updated': 'bg-yellow-lt', 'removed': 'bg-red-lt', 'unchanged': 'bg-secondary-lt'}[row.status] }}">{{ ('forecast_import.status.' ~ row.status)|trans }}</span></td>
                                         <td>
-                                            {% if row.timeOff %}<span class="badge bg-azure-lt">{{ 'forecast_import.time_off'|trans }}</span>{% else %}{{ row.label }}{% endif %}
+                                            {% if row.timeOff %}<span class="badge bg-azure-lt">{{ 'forecast_import.time_off'|trans }}</span>{% else %}{% if row.reservation ?? false %}<span class="badge bg-purple-lt me-1">{{ 'forecast_import.reserved_time'|trans }}</span>{% endif %}{{ row.label }}{% endif %}
                                             {% if row.tentative %}<span class="badge bg-purple-lt ms-1">{{ 'forecast_import.tentative'|trans }}</span>{% endif %}
                                             {% if row.comment %}<div class="text-secondary small">{{ row.comment|u.truncate(120, '…') }}</div>{% endif %}
                                         </td>

@@ -14,6 +14,7 @@ namespace KimaiPlugin\ForecastImportBundle\Repository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use KimaiPlugin\ForecastImportBundle\Entity\ImportedPlanning;
+use KimaiPlugin\ForecastImportBundle\Import\PlannerCapabilities;
 use KimaiPlugin\ForecastImportBundle\Import\PlannedAssignment;
 use KimaiPlugin\PlannerBundle\Entity\PlannedActivity;
 
@@ -22,7 +23,7 @@ use KimaiPlugin\PlannerBundle\Entity\PlannedActivity;
  */
 class ImportedPlanningRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, private readonly ?PlannerCapabilities $capabilities = null)
     {
         parent::__construct($registry, ImportedPlanning::class);
     }
@@ -53,8 +54,8 @@ class ImportedPlanningRepository extends ServiceEntityRepository
      * planning someone split, or cut a day out of, in the planner. The planner copies everything to that half except
      * this import's link, so it is recognised in two ways:
      *
-     * - it has the same person, customer and project as an imported planning and lies within the dates the import gave
-     *   that planning. Nothing else can: the planner refuses two plannings of one project for one person on the same
+     * - it has the same person, customer and project (and reserved time, where the planner has it) as an imported
+     *   planning and lies within the dates the import gave that planning. Nothing else can: the planner refuses two plannings of one project for one person on the same
      *   day, so these days held the imported planning when the half was made;
      * - it carries the recurrence group of an assignment the import cut around days off, which also finds halves whose
      *   imported planning was deleted since.
@@ -75,7 +76,7 @@ class ImportedPlanningRepository extends ServiceEntityRepository
             }
         };
 
-        $rows = $em->createQueryBuilder()
+        $qb = $em->createQueryBuilder()
             ->select('a', 'l.forecastAssignmentId AS assignment')
             ->from(ImportedPlanning::class, 'l')
             ->join('l.plannedActivity', 'la')
@@ -84,9 +85,13 @@ class ImportedPlanningRepository extends ServiceEntityRepository
             ->andWhere('(a.project = la.project OR (a.project IS NULL AND la.project IS NULL))')
             ->andWhere('a.begin >= l.partBegin')
             ->andWhere('a.end <= l.partEnd')
-            ->andWhere($unlinked)
-            ->getQuery()
-            ->getResult();
+            ->andWhere($unlinked);
+        // reserved time has no customer either: without this, time off or another reservation planned by hand within
+        // an imported one's dates would be taken for part of it, and removed or cut with it
+        if ($this->capabilities?->supportsReservations() ?? false) {
+            $qb->andWhere('(a.reservation = la.reservation OR (a.reservation IS NULL AND la.reservation IS NULL))');
+        }
+        $rows = $qb->getQuery()->getResult();
         foreach ($rows as $row) {
             $add((int) $row['assignment'], $row[0]);
         }

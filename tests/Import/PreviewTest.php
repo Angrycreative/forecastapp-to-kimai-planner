@@ -69,4 +69,17 @@ final class PreviewTest extends TestCase
     {
         return new PlannedPart($user, $customer, $project, new \DateTimeImmutable($begin), new \DateTimeImmutable($end), $hours, $timeOff, false, null);
     }
+
+    public function testReservedTimeIsLabelledWithItsName(): void
+    {
+        $alex = self::user(1, 'Alex');
+        $plan = new Plan(new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2027-11-08'));
+        $plan->add(new PlannedAssignment(1, [new PlannedPart($alex, null, null, new \DateTimeImmutable('2026-11-09'), new \DateTimeImmutable('2026-11-13'), 1.0, false, false, null, 'agency-buffer', 'Agency buffer')], 'f1'));
+
+        $row = Preview::byPerson($plan, new ImportResult(true))[0]['rows'][0];
+
+        self::assertSame('Agency buffer', $row['label']);
+        self::assertTrue($row['reservation']);
+        self::assertFalse($row['timeOff']);
+    }
 }

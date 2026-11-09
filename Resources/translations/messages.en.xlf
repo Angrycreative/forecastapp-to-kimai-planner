@@ -222,6 +222,30 @@
                 <source>forecast_import.choose_user</source>
                 <target>Choose a user.</target>
             </trans-unit>
+            <trans-unit id="forecast_import.action_reservation">
+                <source>forecast_import.action_reservation</source>
+                <target>Reserved time</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.reservation">
+                <source>forecast_import.reservation</source>
+                <target>Reserved time</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.reservation_help">
+                <source>forecast_import.reservation_help</source>
+                <target>Planned like project work, but for something that is not a customer or project. Set up in System &gt; Reserved time.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.reserved_time">
+                <source>forecast_import.reserved_time</source>
+                <target>Reserved time</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.choose_reservation">
+                <source>forecast_import.choose_reservation</source>
+                <target>Choose the reserved time.</target>
+            </trans-unit>
+            <trans-unit id="forecast_import.problem.reservation_unsupported">
+                <source>forecast_import.problem.reservation_unsupported</source>
+                <target>Reserved time, which the installed planner cannot hold</target>
+            </trans-unit>
             <trans-unit id="forecast_import.choose_customer">
                 <source>forecast_import.choose_customer</source>
                 <target>Choose a customer.</target>

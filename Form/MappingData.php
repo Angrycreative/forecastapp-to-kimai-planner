@@ -27,6 +27,7 @@ final class MappingData
     public ?User $user = null;
     public ?Customer $customer = null;
     public ?Project $project = null;
+    public ?string $reservation = null;
 
     public static function fromTarget(?Target $target, string $default): self
     {
@@ -35,6 +36,7 @@ final class MappingData
         $data->user = $target?->user;
         $data->customer = $target?->customer;
         $data->project = $target?->project;
+        $data->reservation = $target?->reservation;
 
         return $data;
     }
@@ -45,6 +47,7 @@ final class MappingData
             Target::USER => Target::user($this->user ?? throw new \LogicException('validated')),
             Target::WORK => Target::work($this->customer ?? throw new \LogicException('validated'), $this->project),
             Target::TIME_OFF => Target::timeOff(),
+            Target::RESERVATION => Target::reservation($this->reservation ?? throw new \LogicException('validated')),
             default => Target::skip(),
         };
     }
@@ -57,6 +60,9 @@ final class MappingData
         }
         if ($this->action === Target::WORK && $this->customer === null) {
             $context->buildViolation('forecast_import.choose_customer')->atPath('customer')->setTranslationDomain('messages')->addViolation();
+        }
+        if ($this->action === Target::RESERVATION && ($this->reservation === null || $this->reservation === '')) {
+            $context->buildViolation('forecast_import.choose_reservation')->atPath('reservation')->setTranslationDomain('messages')->addViolation();
         }
         if ($this->action === Target::WORK && $this->project !== null && $this->project->getCustomer() !== $this->customer) {
             $context->buildViolation('forecast_import.project_of_other_customer')->atPath('project')->setTranslationDomain('messages')->addViolation();
