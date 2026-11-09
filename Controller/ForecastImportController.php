@@ -42,7 +42,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * The import screens: connect and fetch, map people, map projects, choose tentative tags, preview and import.
  */
 #[Route(path: '/admin/forecast-import')]
-#[IsGranted('forecast_import')]
+#[IsGranted('import_forecast_planner')]
 final class ForecastImportController extends AbstractController
 {
     private const SESSION_READ = 'forecast_import.read';
