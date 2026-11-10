@@ -95,6 +95,9 @@ final class ReservationCatalogueTest extends TestCase
         // a key from the provider version is no ID
         self::assertNull($catalogue->find('agency-buffer'));
         self::assertSame('3', $catalogue->keyByName('  agency buffer '));
+        // fingerprints hold the name's slug: what keys were before reserved time was built in, so old imports match
+        self::assertSame('agency-buffer', $catalogue->fingerprintKey('3'));
+        self::assertSame('99', $catalogue->fingerprintKey('99'));
         self::assertNull($catalogue->keyByName('Old'));
     }
 

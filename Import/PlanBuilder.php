@@ -143,9 +143,10 @@ final class PlanBuilder
                 $tentative,
                 $hours,
             ];
-            // only when there is one, so everything imported before reserved time existed stays unchanged
+            // only when there is one, so everything imported before reserved time existed stays unchanged; by the
+            // name's slug rather than the ID, see ReservationCatalogue::fingerprintKey()
             if ($reservation !== null) {
-                $fingerprinted[] = $reservation;
+                $fingerprinted[] = $this->reservations?->fingerprintKey($reservation) ?? $reservation;
             }
             $fingerprint = sha1((string) json_encode($fingerprinted));
 

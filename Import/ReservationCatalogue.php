@@ -11,6 +11,8 @@ declare(strict_types=1);
 
 namespace KimaiPlugin\ForecastImportBundle\Import;
 
+use Symfony\Component\String\Slugger\AsciiSlugger;
+
 /**
  * The Weekly Planner's reserved time (hours held for something that is not a customer or project), built into the
  * planner since 2.2.0. The import refers to a reservation by its ID as text, the "key" everywhere else in the import:
@@ -81,6 +83,25 @@ class ReservationCatalogue
 
         /** @phpstan-ignore method.notFound */
         return $this->reservations->find((int) $key);
+    }
+
+    /**
+     * What an assignment's fingerprint holds for its reservation: the name as a slug ("Agency buffer" becomes
+     * "agency-buffer"), not the ID, so the fingerprint means the same in every installation, and is what the
+     * reservation's key was before reserved time was built into the planner, so those imports stay unchanged. A
+     * reservation the planner does not know keeps its key.
+     */
+    public function fingerprintKey(string $key): string
+    {
+        /** @phpstan-ignore method.notFound */
+        $name = $this->find($key)?->getName();
+        if ($name === null || $name === '') {
+            return $key;
+        }
+
+        $slug = (new AsciiSlugger())->slug((string) $name)->lower()->toString();
+
+        return $slug === '' ? $key : substr($slug, 0, 64);
     }
 
     /**
