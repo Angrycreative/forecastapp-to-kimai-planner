@@ -297,7 +297,8 @@ class Importer
             if ($part->timeOff) {
                 $activity->setTimeOff(true);
             } elseif ($part->reservation !== null) {
-                $activity->setReservation($part->reservation);
+                // the plan only holds reservations that exist, see PlanBuilder
+                $activity->setReservation($this->reservations?->find($part->reservation));
             } else {
                 $activity->setCustomer($part->customer);
                 $activity->setProject($part->project);

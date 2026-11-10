@@ -63,9 +63,12 @@ class Mapping
     #[ORM\JoinColumn(name: 'project_id', nullable: true, onDelete: 'SET NULL')]
     private ?Project $project = null;
 
-    /** The key of one of the planner's reservations, for reserved time. */
-    #[ORM\Column(name: 'reservation_key', type: Types::STRING, length: 64, nullable: true)]
-    private ?string $reservation = null;
+    /**
+     * The ID of one of the planner's reservations, for reserved time. (The column reservation_key held the key of the
+     * provider version from before the planner had reserved time built in; it is no longer read.)
+     */
+    #[ORM\Column(name: 'reservation_id', type: Types::INTEGER, nullable: true)]
+    private ?int $reservation = null;
 
     /** Put on every planning imported through this decision, ahead of the Forecast project's and the assignment's own notes. */
     #[ORM\Column(name: 'comment', type: Types::TEXT, nullable: true)]
@@ -122,9 +125,12 @@ class Mapping
         return $this->project;
     }
 
+    /**
+     * The reservation's key as the import uses it: its ID as text.
+     */
     public function getReservation(): ?string
     {
-        return $this->reservation;
+        return $this->reservation === null ? null : (string) $this->reservation;
     }
 
     public function getComment(): ?string
@@ -138,7 +144,7 @@ class Mapping
         $this->user = $target->user;
         $this->customer = $target->customer;
         $this->project = $target->project;
-        $this->reservation = $target->reservation;
+        $this->reservation = $target->reservation === null || !ctype_digit($target->reservation) ? null : (int) $target->reservation;
         $this->comment = $target->comment;
         $this->hadProject = $target->project !== null;
         $this->updatedAt = new \DateTimeImmutable();
@@ -171,7 +177,7 @@ class Mapping
             Target::USER => $this->user === null ? null : Target::user($this->user),
             Target::WORK => $this->workTarget(),
             Target::TIME_OFF => Target::timeOff(),
-            Target::RESERVATION => $this->reservation === null || $this->reservation === '' ? null : Target::reservation($this->reservation),
+            Target::RESERVATION => $this->reservation === null ? null : Target::reservation((string) $this->reservation),
             Target::SKIP => Target::skip(),
             default => null,
         };
