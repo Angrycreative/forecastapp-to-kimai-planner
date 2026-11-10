@@ -241,6 +241,7 @@ final class ForecastImportController extends AbstractController
         }
 
         $mappingData = MappingData::fromTarget($row['target'], Target::WORK);
+        $mappingData->comment ??= $this->mappings->savedComment(Mapping::PROJECT, $id);
         if ($row['target'] === null && ($best = $row['suggestions'][0] ?? null) !== null) {
             $project = $this->catalogue->project($best['candidate']->projectId);
             $mappingData->customer = $project?->getCustomer();

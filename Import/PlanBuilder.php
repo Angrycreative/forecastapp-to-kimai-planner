@@ -157,8 +157,8 @@ final class PlanBuilder
 
     /**
      * A planning's comment: the mapping's comment first, so it reads as what the planning is for, then the Forecast
-     * project's notes and the assignment's own, as far as they are imported. Blank parts and parts already said earlier (a project note pasted into
-     * the mapping comment, say) are left out.
+     * project's notes and the assignment's own, as far as they are imported. Blank parts and parts already said earlier as a
+     * whole line (a project note pasted into the mapping comment on a line of its own, say) are left out.
      */
     private function comment(?string ...$parts): ?string
     {
@@ -168,10 +168,10 @@ final class PlanBuilder
             if ($part === '') {
                 continue;
             }
-            foreach ($lines as $line) {
-                if (str_contains($line, $part)) {
-                    continue 2;
-                }
+            // whole lines only: a short note such as "UX" must not vanish because an earlier part happens to contain it
+            $said = array_map('trim', explode("\n", implode("\n", $lines)));
+            if (\in_array($part, $said, true) || \in_array($part, $lines, true)) {
+                continue;
             }
             $lines[] = $part;
         }

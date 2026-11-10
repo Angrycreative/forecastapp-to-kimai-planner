@@ -228,6 +228,15 @@ class MappingService implements ResetInterface
         return \count($mappings);
     }
 
+    /**
+     * The comment saved on a decision, also when the decision itself no longer resolves (its project was deleted), so
+     * deciding again does not lose it.
+     */
+    public function savedComment(string $kind, int $forecastId): ?string
+    {
+        return ($this->repository->findByKind($kind)[(string) $forecastId] ?? null)?->getComment();
+    }
+
     public function forget(string $kind, int $forecastId): void
     {
         $existing = $this->repository->findByKind($kind)[(string) $forecastId] ?? null;
