@@ -6,6 +6,9 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 
 ## What it does
 
+<img width="3904" height="2130" alt="screenshot-of-the-admin" src="https://github.com/user-attachments/assets/b3d06376-5923-4240-8633-2601d932f35c" />
+
+
 - **Reads Forecast, never writes to it.** You enter a Harvest personal access token and your Forecast account ID. The plugin only ever reads: it cannot change anything in Forecast. Tick "Remember" to keep the token, encrypted, for the next read, and clear it with one button when you are done; the screen reminds you after an import.
 - **Matches people automatically.** Forecast people are matched to Kimai users by email address. You can change any match, or leave someone out.
 - **Suggests where each project goes.** Project names rarely survive a move unchanged ("Acme / Acme Marketing" in Forecast, "Acme Ltd / Acme Marketing Services" in Kimai), so the plugin scores how alike the customer and project names are and suggests the closest Kimai project. Strong suggestions are ticked for you to accept in one go; you confirm or change the rest. A Forecast project can also go to a customer without a project. The list shows each project's Forecast notes and the notes on its assignments, to help you decide.
