@@ -30,7 +30,7 @@ services:
         arguments:
             $secret: '%kernel.secret%'
 
-    # reserved time only exists in planner versions that ship reservations; without them none is offered
+    # reserved time is built into the planner since 2.2.0; older planners have none to offer
     KimaiPlugin\ForecastImportBundle\Import\ReservationCatalogue:
         arguments:
-            $reservations: '@?KimaiPlugin\PlannerBundle\Reservation\PlanningReservations'
+            $reservations: '@?KimaiPlugin\PlannerBundle\Repository\ReservationRepository'

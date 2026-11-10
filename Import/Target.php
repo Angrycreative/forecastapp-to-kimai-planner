@@ -59,7 +59,7 @@ final class Target
     }
 
     /**
-     * @param string $reservation the key of one of the planner's reservations
+     * @param string $reservation the ID of one of the planner's reservations, as text
      */
     public static function reservation(string $reservation, bool $automatic = false): self
     {

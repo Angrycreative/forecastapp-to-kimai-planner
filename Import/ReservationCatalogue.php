@@ -11,15 +11,18 @@ declare(strict_types=1);
 
 namespace KimaiPlugin\ForecastImportBundle\Import;
 
+use Symfony\Component\String\Slugger\AsciiSlugger;
+
 /**
- * The Weekly Planner's reserved time (hours held for something that is not a customer or project), as far as the
- * import needs it. The planner has none of its own: another plugin offers them. Older planners know nothing of
- * reserved time, so everything here works without it and then offers none.
+ * The Weekly Planner's reserved time (hours held for something that is not a customer or project), built into the
+ * planner since 2.2.0. The import refers to a reservation by its ID as text, the "key" everywhere else in the import:
+ * mappings, plan parts and fingerprints. Older planners have no reserved time, so everything here works without it
+ * and then offers none.
  */
 class ReservationCatalogue
 {
     /**
-     * @param object|null $reservations the planner's KimaiPlugin\PlannerBundle\Reservation\PlanningReservations, when it has one
+     * @param object|null $reservations the planner's KimaiPlugin\PlannerBundle\Repository\ReservationRepository, when it has one
      */
     public function __construct(
         private readonly PlannerCapabilities $capabilities,
@@ -35,7 +38,7 @@ class ReservationCatalogue
     /**
      * The reservations that can be chosen for new planning.
      *
-     * @return array<string, string> name by key, in the planner's order
+     * @return array<string, string> name by key (the ID as text), in the planner's order
      */
     public function selectable(): array
     {
@@ -45,20 +48,19 @@ class ReservationCatalogue
 
         $names = [];
         /** @phpstan-ignore method.notFound */
-        foreach ($this->reservations->getSelectable() as $key => $reservation) {
-            $names[(string) $key] = (string) $reservation->name;
+        foreach ($this->reservations->findSelectable() as $reservation) {
+            $names[(string) $reservation->getId()] = (string) $reservation->getName();
         }
 
         return $names;
     }
 
     /**
-     * Whether the planner knows the key, archived (hidden) ones included.
+     * Whether the planner knows the key, archived ones included.
      */
     public function exists(string $key): bool
     {
-        /** @phpstan-ignore method.notFound */
-        return $this->isSupported() && $this->reservations->get($key) !== null;
+        return $this->find($key) !== null;
     }
 
     /**
@@ -67,7 +69,39 @@ class ReservationCatalogue
     public function name(string $key): string
     {
         /** @phpstan-ignore method.notFound */
-        return $this->isSupported() ? ($this->reservations->get($key)?->name ?? $key) : $key;
+        return (string) ($this->find($key)?->getName() ?? $key);
+    }
+
+    /**
+     * The planner's reservation for a key, to put on a planning; null when it does not exist (any more).
+     */
+    public function find(string $key): ?object
+    {
+        if (!$this->isSupported() || !ctype_digit($key)) {
+            return null;
+        }
+
+        /** @phpstan-ignore method.notFound */
+        return $this->reservations->find((int) $key);
+    }
+
+    /**
+     * What an assignment's fingerprint holds for its reservation: the name as a slug ("Agency buffer" becomes
+     * "agency-buffer"), not the ID, so the fingerprint means the same in every installation, and is what the
+     * reservation's key was before reserved time was built into the planner, so those imports stay unchanged. A
+     * reservation the planner does not know keeps its key.
+     */
+    public function fingerprintKey(string $key): string
+    {
+        /** @phpstan-ignore method.notFound */
+        $name = $this->find($key)?->getName();
+        if ($name === null || $name === '') {
+            return $key;
+        }
+
+        $slug = (new AsciiSlugger())->slug((string) $name)->lower()->toString();
+
+        return $slug === '' ? $key : substr($slug, 0, 64);
     }
 
     /**
@@ -78,7 +112,7 @@ class ReservationCatalogue
         $wanted = mb_strtolower(trim($name));
         foreach ($this->selectable() as $key => $reservationName) {
             if (mb_strtolower(trim($reservationName)) === $wanted) {
-                return $key;
+                return (string) $key;
             }
         }
 

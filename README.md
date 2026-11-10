@@ -31,7 +31,7 @@ Built by [Angry Creative](https://angrycreative.se) for our own move from Foreca
 ## Requirements
 
 - Kimai 2.60 or later
-- [PlannerBundle](https://github.com/happiness/PlannerBundle) installed. Time off and tentative planning need a planner version that has them; with an older planner those assignments are reported and imported as far as it allows. Reserved time also needs a plugin that offers reservations to the planner; without one, the choice is not shown.
+- [PlannerBundle](https://github.com/happiness/PlannerBundle) installed. Time off and tentative planning need a planner version that has them; with an older planner those assignments are reported and imported as far as it allows. Reserved time needs PlannerBundle 2.2.0 or later, where admins keep the reservations under *Administration > Reserved time*; with an older planner, the choice is not shown.
 - Outbound HTTPS from the Kimai server to `api.forecastapp.com`
 - A Harvest personal access token for someone with access to the Forecast account ([id.getharvest.com/developers](https://id.getharvest.com/developers))
 
