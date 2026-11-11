@@ -339,8 +339,10 @@ class Importer
 
     private function label(PlannedActivity $activity): string
     {
-        if ($this->capabilities->supportsReservations() && $activity->getReservation() !== null) {
-            return $this->reservations?->name($activity->getReservation()) ?? $activity->getReservation();
+        // the planning holds the planner's Reservation itself, not a key the catalogue resolves
+        $reservation = $this->capabilities->supportsReservations() ? $activity->getReservation() : null;
+        if ($reservation !== null) {
+            return (string) $reservation->getName();
         }
 
         return $activity->getProject() !== null
